@@ -1,0 +1,123 @@
+PARENT     = ${WORK}${USER}/projects/SLapH_serial/
+MODULES    = ${PARENT}modules/
+HEADER     = ${PARENT}include/
+CFLAGS	   = -std=c++0x -fopenmp -DEIGEN_DONT_PARALLELIZE -L/usr/local/lib -O2
+SLEPC_LIB  = ${SLEPC_DIR}/lib
+INCLUDE	   = -I${WORK}helmes/programm_libs/eigen-3.2.0 -I/usr/local/include -I${PARENT}include/
+MYLIB	   = -lm -llime 
+MYOBJS     = config_utils.o eigensystem.o io.o io_utils.o shell_matop.o recover_spec.o
+MAINOBJ	   = ev_ts.o 
+HYPOBJ     = ev_ts_hyp_scan.o
+EXE        = ev_ts
+CC	   = g++
+CPP	   = g++
+CLINKER = g++
+RM	= rm
+
+include	${SLEPC_DIR}/conf/slepc_common
+include ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
+
+all: ${EXE}
+	
+${EXE}: ${MYOBJS} ${MAINOBJ} chkopts
+	g++ -o ${EXE} ${MYOBJS} read_write.o  ${MAINOBJ} -fopenmp ${MYLIB} ${SLEPC_LIB}
+	${RM} ${MYOBJS} read_write.o  ${MAINOBJ}
+
+ev_ts_hyp_scan: ${MYOBJS} ${HYPOBJ} read_write.o chkopts
+	g++ -o ev_ts_hyp_scan ${MYOBJS} ${HYPOBJ} read_write.o ${MYLIB} ${SLEPC_LIB}
+	${RM} ${MYOBJS} ${HYPOBJ} read_write.o
+
+stat_test: stat_test.o read_write.o statistics.o
+	g++ -o stat_test stat_test.o read_write.o statistics.o
+	${RM} *.o
+
+invert_evalues: invert_evalues.o read_write.o recover_spec.o
+	g++ -o invert_evalues invert_evalues.o read_write.o recover_spec.o
+	${RM} *.o
+
+source_shape: source_shape_calc.o read_write.o sourceshape.o config_utils.o
+	g++ -o source_shape source_shape_calc.o read_write.o sourceshape.o config_utils.o ${MYLIB} ${SLEPC_LIB}
+	${RM} *.o
+
+test_config_readin: test_config_readin.o io.o io_utils.o config_utils.o
+	g++ -o test_config_readin test_config_readin.o io.o io_utils.o config_utils.o  ${MYLIB} ${SLEPC_LIB}
+	${RM} *.o
+
+gauge_link_smearing: gauge_link_smearing.o config_utils.o io_utils.o io.o read_write.o
+	g++ -o gauge_link_smearing gauge_link_smearing.o config_utils.o io_utils.o io.o read_write.o ${MYLIB} ${SLEPC_LIB}
+	${RM} *.o
+
+test_eigensystems: test_eigensystems.o read_write.o config_utils.o
+	g++ -o test_eigensystems test_eigensystems.o read_write.o config_utils.o ${MYLIB} ${SLEPC_LIB}
+	${RM} *.o
+
+average_ev: average_ev.o read_write.o 
+	g++ -o average_ev average_ev.o read_write.o
+	${RM} *.o
+
+test_displace: test_displace.o read_write.o config_utils.o io_utils.o io.o
+	g++ -o test_displace test_displace.o read_write.o config_utils.o io_utils.o io.o ${MYLIB} ${SLEPC_LIB}
+
+test_phase: test_phase.o read_write.o 
+	g++ -o test_phase test_phase.o read_write.o ${MYLIB}
+
+config_utils.o: ${MODULES}config_utils.cpp ${MODULES}read_write.cpp
+	${CC} ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} -c ${MODULES}config_utils.cpp ${MODULES}read_write.cpp
+
+io.o: ${MODULES}io.cpp ${MODULES}io_utils.cpp 
+	${CC} ${CFLAGS} ${INCLUDE} ${SLEPC_LIB} -c ${MODULES}io.cpp ${MODULES}io_utils.cpp
+
+io_utils.o: ${MODULES}io_utils.cpp 
+	${CC} ${CFLAGS} ${INCLUDE} ${SLEPC_LIB} -c ${MODULES}io_utils.cpp
+
+shell_matop.o: ${MODULES}shell_matop.cpp
+	${CC} ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} ${SLEPC_LIB} -c ${MODULES}shell_matop.cpp
+
+recover_spec.o: ${MODULES}recover_spec.cpp ${MODULES}read_write.cpp
+	${CC} ${CFLAGS} ${INCLUDE} ${SLEPC_LIB} -c ${MODULES}recover_spec.cpp ${MODULES}read_write.cpp
+
+eigensystem.o: ${MODULES}eigensystem.cpp 
+	${CC} -c ${CFLAGS} ${INCLUDE} ${MODULES}eigensystem.cpp 
+
+ev_ts.o: ev_ts.cpp ${MODULES}config_utils.cpp ${MODULES}eigensystem.cpp ${MODULES}io.cpp ${MODULES}shell_matop.cpp ${MODULES}recover_spec.cpp ${MODULES}read_write.cpp
+	${CC} ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} ${SLEPC_LIB} -c ev_ts.cpp ${MODULES}config_utils.cpp ${MODULES}eigensystem.cpp ${MODULES}io.cpp ${MODULES}shell_matop.cpp ${MODULES}recover_spec.cpp ${MODULES}read_write.cpp
+
+ev_ts_hyp_scan.o: ev_ts_hyp_scan.cpp ${MODULES}config_utils.cpp ${MODULES}io.cpp ${MODULES}shell_matop.cpp ${MODULES}recover_spec.cpp ${MODULES}read_write.cpp
+	${CC} ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} ${SLEPC_LIB} -c ev_ts_hyp_scan.cpp ${MODULES}config_utils.cpp ${MODULES}io.cpp ${MODULES}shell_matop.cpp ${MODULES}recover_spec.cpp ${MODULES}read_write.cpp
+ 
+stat_test.o: stat_test.cpp ${MODULES}statistics.cpp ${MODULES}read_write.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} stat_test.cpp
+
+read_write.o: ${MODULES}read_write.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} ${MODULES}read_write.cpp
+
+statistics.o: ${MODULES}statistics.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} ${MODULES}statistics.cpp
+
+invert_evalues.o: invert_evalues.cpp ${MODULES}read_write.cpp ${MODULES}recover_spec.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} invert_evalues.cpp
+
+source_shape_calc.o: source_shape_calc.cpp ${MODULES}read_write.cpp ${MODULES}sourceshape.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} source_shape_calc.cpp
+
+sourceshape.o: ${MODULES}sourceshape.cpp ${MODULES}config_utils.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} ${MODULES}sourceshape.cpp
+
+test_config_readin.o: test_config_readin.cpp ${MODULES}config_utils.cpp ${MODULES}io.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} test_config_readin.cpp
+
+gauge_link_smearing.o: gauge_link_smearing.cpp ${MODULES}config_utils.cpp ${MODULES}io.cpp ${MODULES}read_write.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} gauge_link_smearing.cpp
+
+test_displace.o: test_displace.cpp ${MODULES}config_utils.cpp ${MODULES}io.cpp ${MODULES}read_write.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} test_displace.cpp
+
+test_phase.o: test_phase.cpp ${MODULES}read_write.cpp ${MODULES}eigensystem.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} test_phase.cpp
+
+test_eigensystems.o: test_eigensystems.cpp ${MODULES}read_write.cpp ${MODULES}config_utils.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} test_eigensystems.cpp
+
+average_ev.o: average_ev.cpp ${MODULES}read_write.cpp
+	${CC} -c ${CFLAGS} ${INCLUDE} average_ev.cpp
+
