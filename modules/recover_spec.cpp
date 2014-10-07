@@ -3,15 +3,18 @@
 #include <cmath>
 #include <iostream>
 
+#include "par_io.h"
 #include "recover_spec.h"
 #include "read_write.h"
-#include "variables.h"
+
+static IO* const pars = IO::getInstance();
+
 //Invert map
 double invert_B(const double value_in) {
 
   //Parameters for projection
-  double lambda_l = LAM_L;
-  double lambda_c = LAM_C;
+  double lambda_l = pars -> get_int("LAM_L");
+  double lambda_c = pars -> get_int("LAM_C");
   return( (lambda_l-lambda_c)*(value_in-1)*0.5 - lambda_c );
 
 }

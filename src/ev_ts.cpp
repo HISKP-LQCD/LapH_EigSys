@@ -17,6 +17,7 @@
 #include "config_utils.h"
 #include "eigensystem.h"
 #include "io.h"
+#include "par_io.h"
 #include "shell_matop.h"
 #include "variables.h"
 #include "recover_spec.h"
@@ -38,6 +39,30 @@ int main(int argc, char **argv) {
   EPS eps;             
   EPSType type;
   EPSConvergedReason reason;
+  //Handling infile
+  IO* pars = getInstance();
+  pars -> set_values("parameters.txt");
+  pars -> print_summary();
+  //in and outpaths
+  string GAUGE_FIELDS = get_path("config_path");
+  //lattice layout from infile 
+  int L0 = pars -> get_int("LT");
+  int L1 = pars -> get_int("LX");
+  int L2 = pars -> get_int("LY");
+  int L3 = pars -> get_int("LZ");
+  int V3 = pars -> get_int("V3");
+  //calculation parameters from infile
+  int NEV = pars -> get_int("NEV");
+  int V_4_LIME = pars -> get_int("V4_LIME");
+  int MAT_ENTRIES -> get_int("MAT_ENTRIES");
+  //chebyshev parameters
+  int LAM_L = pars -> get_int("LAM_L");
+  int LAM_C = pars -> get_int("LAM_C"); 
+  //hyp-smearing parameters
+  double ALPHA_1 = pars -> get_float("alpha_1");
+  double ALPHA_2 = pars -> get_float("alpha_2");
+  int ITER = pars -> get_int("iter");
+
   //N: # rows/columns, nev: desired # Eigenvalues, nconv: # converged EVs
   PetscInt nev = NEV;
   PetscInt n;

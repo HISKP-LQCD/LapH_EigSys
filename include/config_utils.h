@@ -20,9 +20,9 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <petsctime.h>
 
+#include "par_io.h"
 #include "read_write.h"
 #include "variables.h"
-
 
 //navigation through timeslice
 void hopping3d(int iup[][3], int idown[][3]);

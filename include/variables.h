@@ -12,7 +12,7 @@
  */
 
 #ifndef VARIABLES_H_
-#define VARIABLES_H_
+#define VARIABLES_H_/*
 //Geometry (set up for equal spatial extent)
 const int L0 = 4; //nt
 const int L1 = 4; //nx
@@ -41,7 +41,7 @@ const int ITER = 3;
 
 //random seed
 const unsigned int RND_SEED = 1227;
-
+*/
 //Global Declarations
 extern int up_3d[V3][3], down_3d[V3][3];
 //Time Slice of Configuration

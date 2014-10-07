@@ -11,7 +11,14 @@
  */
 #include "config_utils.h"
 
+static IO* const pars = getInstance();
+
 void hopping3d(int iup[][3], int idown[][3]){
+  
+  int L0 = pars -> get_int("LX");
+  int L1 = pars -> get_int("LY");
+  int L2 = pars -> get_int("LZ");
+
 
   int* x0_h = new int[3];
   int* x1_h = new int[3];
@@ -64,6 +71,16 @@ void hopping3d(int iup[][3], int idown[][3]){
 
 //Get SU(3)-Matrices from timeslice and sort them into Eigen Array
 void map_timeslice_to_eigen(Eigen::Matrix3cd **eigen, double *timeslice) {
+  int L1 = pars -> get_int("LX");
+  int L2 = pars -> get_int("LY");
+  int L3 = pars -> get_int("LZ");
+  
+  int NDIR = pars -> get_int("NDIR");
+  int NCOL = pars -> get_int("NCOL");
+  int V3 = pars -> get_int("V3");
+
+  int V_TS = pars -> get_int("V_TS");
+
   //read in elements
   int el_input = 0;
   for (int z = 0; z < L3; ++z) {//spatial loops
@@ -101,6 +118,7 @@ void map_timeslice_to_eigen(Eigen::Matrix3cd **eigen, double *timeslice) {
 //Maps SU(3)-Matrices of ts to sparse Laplacian matrix Lap
 PetscErrorCode BuildLaplacian(Mat Lap, Eigen::Matrix3cd **ts,
     int iup[][3], int idown[][3]) {
+  int V3 = pars -> get_int("V3");
   PetscErrorCode error;
   //# of transferred elements
   size_t n_el = 0;
@@ -198,6 +216,7 @@ static int decor (int dir, int smear_plane) {
 
 void smearing_stout(Eigen::Matrix3cd **eigen_timeslice, double rho, int iter) {
 
+  int V3 = pars -> get_int("V3");
   std::complex<double> im_half(0,0.5);
   Eigen::Matrix3cd **eigen_timeslice_ts = new Eigen::Matrix3cd *[V3]; 
   for ( auto i = 0; i < V3; ++i ) {
@@ -248,6 +267,7 @@ void smearing_stout(Eigen::Matrix3cd **eigen_timeslice, double rho, int iter) {
 //Ape-Smearing
 void smearing_ape(Eigen::Matrix3cd **eigen_timeslice, double alpha, int iter){
 
+  int V3 = pars -> get_int("V3");
   Eigen::Matrix3cd **eigen_timeslice_ts = new Eigen::Matrix3cd *[V3]; 
   for ( auto i = 0; i < V3; ++i ) {
     eigen_timeslice_ts[i] = new Eigen::Matrix3cd[3];
@@ -294,6 +314,7 @@ void smearing_ape(Eigen::Matrix3cd **eigen_timeslice, double alpha, int iter){
 
 void smearing_hyp(Eigen::Matrix3cd **eigen_timeslice, double alpha_1, double alpha_2, int iter) {
   
+  int V3 = pars -> get_int("V3");
   //temporal timeslice twice the size for decorated links 
   Eigen::Matrix3cd **dec_timeslice = new Eigen::Matrix3cd *[V3];
   for (auto vol = 0; vol < V3; ++vol) {
@@ -425,6 +446,7 @@ void smearing_hyp(Eigen::Matrix3cd **eigen_timeslice, double alpha_1, double alp
 void right_displacement_one_dir(Eigen::Matrix3cd** config, const int iup[][3],
     const int idown[][3], const int dir, Eigen::MatrixXcd& V, Eigen::MatrixXcd& W ) {
 
+  int V3 = pars -> get_int("V3");
   //Information on Matrix size
   const int num_cols = V.cols();
   const int num_rows = V.rows();
@@ -487,6 +509,7 @@ double get_plaque_nx_ny(int x, int y, int &i, int iup[][3], int idown[][3],
 
 double plaque_timeslice(Eigen::Matrix3cd **ts, int iup[][3] , int idown[][3]){
 
+  int V3 = pars -> get_int("V3");
 
   double plaquette = 0;
   double cnt = 0;
@@ -505,6 +528,7 @@ double plaque_timeslice(Eigen::Matrix3cd **ts, int iup[][3] , int idown[][3]){
 }
 
 void check_gauge(Eigen::Matrix3cd **eigen_timeslice,
+  int V3 = pars -> get_int("V3");
     Eigen::Matrix3cd **eigen_ts_gauge) {
   std::complex< double > tr_ts, tr_gauge;
   for ( int j = 0; j < V3; ++j ) {
@@ -525,6 +549,7 @@ void check_gauge(Eigen::Matrix3cd **eigen_timeslice,
 void transform_ts( Eigen::Matrix3cd **config,
     int up[][3], Eigen::Matrix3cd* Omega, Eigen::Matrix3cd **gauge_config) {
 
+  int V3 = pars -> get_int("V3");
   /*
   //SU(3)-gauge field of same size as config
   Eigen::Matrix3cd* Omega = new Eigen::Matrix3cd [V3];
@@ -550,6 +575,7 @@ void transform_ts( Eigen::Matrix3cd **config,
 
 //transform matrix of eigenvectors with gauge array
 void transform_ev(const int nb_ev, Eigen::Matrix3cd* Omega, Eigen::MatrixXcd& V) {
+  int V3 = pars -> get_int("V3");
   /*
   //declare gauge trafo
   Eigen::Matrix3cd* Omega = new Eigen::Matrix3cd[V3];

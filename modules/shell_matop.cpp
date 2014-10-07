@@ -5,14 +5,19 @@
  *      Author: helmes
  */
 #include "shell_matop.h"
-#include "variables.h"
+#include "par_io.h"
+
+static IO* const pars = IO::getInstance();
 
 /*tv copies the arrays pointed to by *x and *y to std::vectors iks, yps of type
 Eigen::Vector3cd, respectively
 After this the Multiplication of the Laplace takes place. Result is stored
 in yps, which then is written to the array at *y again. */
 static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
-  
+
+  const int V3 = pars -> get_int("V3");
+  const double LAM_L = pars -> get_float("LAM_L");
+  const double LAM_C = pars -> get_float("LAM_C");
   //define vectors
   std::vector<Eigen::Vector3cd> iks (V3, Eigen::Vector3cd::Ones());
   std::vector<Eigen::Vector3cd> yps (V3, Eigen::Vector3cd::Zero());
@@ -67,6 +72,7 @@ static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
 }
 
 static void scale_array(PetscScalar factor, const PetscScalar *in, PetscScalar *out) {
+  const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   for (int k = 0; k < MAT_ENTRIES; ++k) {
     out[k] = factor * in[k];
   }
@@ -74,6 +80,7 @@ static void scale_array(PetscScalar factor, const PetscScalar *in, PetscScalar *
 
 //calculates y = a+b
 static void add_arrays(const PetscScalar *b, const PetscScalar *a, PetscScalar *y) {
+  const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   for (int k = 0; k < MAT_ENTRIES; ++k) {
     y[k] = a[k] + b[k];
   }
@@ -81,6 +88,7 @@ static void add_arrays(const PetscScalar *b, const PetscScalar *a, PetscScalar *
 
 //calculates y = a-b
 static void subtract_arrays(const PetscScalar *b, const PetscScalar *a, PetscScalar *y) {
+  const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   for (int k = 0; k < MAT_ENTRIES; ++k) {
     y[k] = a[k] - b[k];
   }
@@ -88,6 +96,7 @@ static void subtract_arrays(const PetscScalar *b, const PetscScalar *a, PetscSca
 
 //Calculating Chebyshev-Polynomial T8 of B acting on x in a 4-Step process
 static void tv(int nx, const PetscScalar *x,PetscScalar *y) {
+  const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   PetscScalar tmp[MAT_ENTRIES];
   PetscScalar tmp1[MAT_ENTRIES];
 

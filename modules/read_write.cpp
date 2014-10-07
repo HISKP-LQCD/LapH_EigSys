@@ -2,13 +2,13 @@
 
 #include "read_write.h"
 
-
+static IO* const pars = getInstance();
 /********************************Input from files*****************************/
 
 //Reads in Eigenvectors from one Timeslice in binary format to V
 void read_evectors_bin_ts(const char* prefix, const int config_i, const int t,
     const int nb_ev, Eigen::MatrixXcd& V) {
-
+  int V3 = pars -> get_int("V3");
   const int dim_row = 3 * V3;
   //buffer for read in
   std::complex<double>* eigen_vec = new std::complex<double>[dim_row];
@@ -48,6 +48,7 @@ void read_eigenvalues_ascii(const char* prefix, const int config_i, const int t,
 //Reads in Array of gauge-trafo matrices from binary file to Array of
 //Eigen::3cd matrices
 void read_gauge_matrices (const char* prefix, Eigen::Matrix3cd* G) {
+  int V3 = pars -> get_int("V3");
   const int entries = 9;
   std::ifstream infile(prefix, std::ifstream::binary);
   std::complex<double>* matrix_su3 = new std::complex<double>[entries];
@@ -106,6 +107,7 @@ delete[] buffer;
 //Writes eigenvectors from one Timeslice to file in binary format
 
 void write_eig_sys_bin(const char* prefix, const int config_i, const int t, const int nb_ev, Eigen::MatrixXcd& V) {
+  const int V3 = pars -> get_int("V3");
   //set up filename
   char file [200];
   sprintf(file, "%s.%04d.%03d", prefix, config_i, t);
@@ -162,6 +164,7 @@ void write_eigenvalues_bin( const char* prefix, const int config_i, const int t,
 
 //write gauge trafo matrices to binary file
 void write_gauge_matrices(const char* prefix, Eigen::Matrix3cd* G) {
+  int V3 = pars -> get_int("V3");
 
   std::ofstream outfile (prefix, std::ofstream::binary);
   for (auto vol = 0; vol < V3; ++vol) {
