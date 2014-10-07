@@ -1,0 +1,24 @@
+# This file is intended to pass arguments to the eigensystem calculation in a
+# convenient way. If no values are given default values are set.
+#
+# Absolute Paths to configurations and storage of eigensystems
+config_path = /hiskp2/gauges/.../ 
+result_path = /hiskp2/eigensystems/.../
+#
+# Lattice Extent
+LT = 48
+# usually the lattices are equally extending in all spatial directions.
+# Therefore one spatial extent is enough
+LX = 24
+#
+# Number of eigenvectors to calculate
+NEV = 120
+#
+# Hyp-Smearing parameters
+alpha_1 = 0.62 
+alpha_2 = 0.62
+iter = 3
+#
+# Chebyshev acceleration of eigensystem calculation
+LAM_L = 11.8
+LAM_C = 0.5
