@@ -2,7 +2,7 @@
 
 #include "read_write.h"
 
-static IO* const pars = getInstance();
+static IO* const pars = IO::getInstance();
 /********************************Input from files*****************************/
 
 //Reads in Eigenvectors from one Timeslice in binary format to V
@@ -19,7 +19,7 @@ void read_evectors_bin_ts(const char* prefix, const int config_i, const int t,
   std::ifstream infile(filename, std::ifstream::binary);
   for (int nev = 0; nev < nb_ev; ++nev) {
     infile.read( reinterpret_cast<char*> (eigen_vec), 2*dim_row*sizeof(double));
-    V.col(nev) = Eigen::Map<Eigen::Matrix< std::complex<double>, dim_row, 1> >(eigen_vec);
+    V.col(nev) = Eigen::Map<Eigen::VectorXcd, 0 >(eigen_vec, dim_row);
     //    std::cout << eigen_vec[5] << std::endl;
   }
   //clean up
@@ -175,6 +175,7 @@ void write_gauge_matrices(const char* prefix, Eigen::Matrix3cd* G) {
 //write gauge link matrices of one timeslice to binary file
 void write_link_matrices_ts(const char* prefix, Eigen::Matrix3cd** links) {
 
+  int V3 = pars -> get_int("V3");
   std::ofstream outfile (prefix, std::ofstream::binary);
   for (auto vol = 0; vol < V3; ++vol) {
     for (auto mu = 0; mu < 3; ++mu) {

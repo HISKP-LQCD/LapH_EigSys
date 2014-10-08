@@ -43,7 +43,7 @@ const int ITER = 3;
 const unsigned int RND_SEED = 1227;
 */
 //Global Declarations
-extern int up_3d[V3][3], down_3d[V3][3];
+extern int up_3d[][3], down_3d[][3];
 //Time Slice of Configuration
 extern Eigen::Matrix3cd **eigen_timeslice;
 

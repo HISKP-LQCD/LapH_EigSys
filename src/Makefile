@@ -15,13 +15,21 @@
 all: rmxeq mkdep mkxeq
 .PHONY: all
 
+#Environment variables
+LOCAL_LIB_PATH=/homea/hch02/hch026
+EIGEN_INSTALL=$(LOCAL_LIB_PATH)/jost/eigen-eigen-6b38706d90a9
+LIME_INSTALL=$(LOCAL_LIB_PATH)/jost/lime-1.3.2
+PETSC_INSTALL=$(LOCAL_LIB_PATH)/jost/petsc
+SLEPC_INSTALL=$(LOCAL_LIB_PATH)/jost/slepc-3.4.4
+
+
 # main programs and modules to be compiled
-include ${SLEPC_DIR}/conf/slepc_common
-include ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
+#include ${SLEPC_DIR}/conf/slepc_common
+#include ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
 
 MAIN = ev_ts
 
-GENERAL = config_utils eigensystem io io_utils read_write recover_spec shell_matop 
+GENERAL = config_utils io io_utils read_write par_io recover_spec shell_matop
 MODULES = $(GENERAL)
 
 # search path for modules
@@ -33,38 +41,41 @@ LOGOPTION =
 
 # additional include directories
 # PETSc and SLEPc include paths
-#SLEPC_INCLUDE = ${SLEPC_DIR} \
-		${SLEPC_DIR}/include \
-		${SLEPC_DIR}/${PETSC_ARCH}/include \
-		
+SLEPC_INCLUDE = $(SLEPC_INSTALL)/arch-linux2-cxx-opt/include \
+		$(SLEPC_INSTALL)/include \
+		$(SLEPC_INSTALL)
 
-PETSC_INCLUDE = ${PETSC_DIR} \
-		${PETSC_DIR}/include \
-		${PETSC_DIR}/${PETSC_ARCH}/include \
-		${PETSC_DIR}/${PETSC_ARCH}/include/mpiuni
+PETSC_INCLUDE = $(PETSC_INSTALL)/include \
+		$(PETSC_INSTALL)/arch-linux2-cxx-opt/include \
+		$(PETSC_INSTALL)/include/mpiuni
 
-INCPATH =  -I../include ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES} -I/usr/local/include -I/hiskp2/helmes/programm_libs/lime-1.3.2/include \
-	  -I/hiskp2/helmes/programm_libs/eigen-3.2.0 
+#$(PETSC_INSTALL)/arch-linux2-c-opt/include \
+		$(PETSC_INSTALL) \
+		$(PETSC_INSTALL)/include/mpiuni \
+		$(PETSC_INSTALL)/include \
+
+
+INCPATH = $(PETSC_INCLUDE) $(SLEPC_INCLUDE) $(LIME_INSTALL)/include \
+	  $(EIGEN_INSTALL) ../include 
 
 # additional libraries
 #LIBS = lime opa mpl pthread rdmacm ibverbs ibumad rt gfortran slepc petsc lapack blas pthread m gfortran m quadmath m stdc++ dl 
-LIBS = -llime -lslepc ${PETSC_LIB}
+LIBS = lime slepc petsc
 
-SLEPC_LIBPATH = ${SLEPC_DIR}/${PETSC_ARCH}/lib
-PETSC_LIBPATH = ${PETSC_DIR}/${PETSC_ARCH}/lib
+SLEPC_LIBPATH = $(SLEPC_INSTALL)/arch-linux2-cxx-opt/lib
+PETSC_LIBPATH = $(PETSC_INSTALL)/arch-linux2-cxx-opt/lib
 
-LIBPATH = $(SLEPC_LIBPATH) $(PETSC_LIBPATH) /usr/local/lib  \
-	  /usr/lib/gcc/x86_64-linux-gnu/4.6 /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu 
+LIBPATH = $(LIME_INSTALL)/lib $(PETSC_LIBPATH) $(SLEPC_LIBPATH)
 
 
 # scheduling and optimization options
-CFLAGS = -Wall -pedantic -std=c++0x -O2
+CFLAGS = -std=c++0x -DEIGEN_DONT_PARALLELIZE -O2
 
 ############################## do not change ###################################
-#Changed addprefix for includes and libraries to go conform with petsc-stuff
+
 SHELL=/bin/bash
 CC=gcc
-CLINKER=g++
+CLINKER=$(CC)
 
 PGMS= $(MAIN) $(MODULES)
 
@@ -74,20 +85,20 @@ PGMS= $(MAIN) $(MODULES)
 # rule to make dependencies
 
 $(addsuffix .d,$(PGMS)): %.d: %.cpp Makefile
-	@ $(CC) -ansi $< -MM $(INCPATH) -o $@ $(CFLAGS)
+	@ $(CC) -ansi $< -MM $(addprefix -I,$(INCPATH)) -o $@ $(CFLAGS)
 
 
 # rule to compile source programs
 
 $(addsuffix .o,$(PGMS)): %.o: %.cpp Makefile
-	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix ,$(INCPATH))
+	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
 
 
 # rule to link object files
 
 $(MAIN): %: %.o $(addsuffix .o,$(MODULES)) Makefile
 	$(CLINKER) $< $(addsuffix .o,$(MODULES)) $(CFLAGS) $(LOGOPTION) \
-	    $(addprefix -L,$(LIBPATH)) $(LIBS) -o $@
+	   $(addprefix -L,$(LIBPATH)) $(addprefix -l,$(LIBS)) -lm -o $@
 
 # produce executables
 

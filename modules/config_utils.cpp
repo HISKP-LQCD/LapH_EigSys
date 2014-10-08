@@ -11,7 +11,7 @@
  */
 #include "config_utils.h"
 
-static IO* const pars = getInstance();
+static IO* const pars = IO::getInstance();
 
 void hopping3d(int iup[][3], int idown[][3]){
   
@@ -528,8 +528,8 @@ double plaque_timeslice(Eigen::Matrix3cd **ts, int iup[][3] , int idown[][3]){
 }
 
 void check_gauge(Eigen::Matrix3cd **eigen_timeslice,
-  int V3 = pars -> get_int("V3");
     Eigen::Matrix3cd **eigen_ts_gauge) {
+  int V3 = pars -> get_int("V3");
   std::complex< double > tr_ts, tr_gauge;
   for ( int j = 0; j < V3; ++j ) {
     for (int dir = 0; dir < 3; ++dir ) {
@@ -595,7 +595,8 @@ void transform_ev(const int nb_ev, Eigen::Matrix3cd* Omega, Eigen::MatrixXcd& V)
 
 //build gauge array
 void build_gauge_array(Eigen::Matrix3cd* gauge) {
-  srand(RND_SEED);
+  srand(1227);
+  int V3 = pars -> get_int("V3");
   //for (int vol = 0; vol < V3; ++vol) gauge[vol] = Eigen::Matrix3cd::Identity();
   for (int vol = 0; vol < V3; ++vol) construct_random_su3(gauge[vol]);
 

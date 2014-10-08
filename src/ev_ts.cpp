@@ -24,9 +24,9 @@
 #include "read_write.h"
 //__Global Declarations__
 //lookup tables
-int up_3d[V3][3],down_3d[V3][3];
+//int up_3d[V3][3],down_3d[V3][3];
 //Eigen Array
-Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
+//Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
 
 int main(int argc, char **argv) {
   //--------------------------------------------------------------------------//
@@ -40,21 +40,22 @@ int main(int argc, char **argv) {
   EPSType type;
   EPSConvergedReason reason;
   //Handling infile
-  IO* pars = getInstance();
+  IO* pars = IO::getInstance();
   pars -> set_values("parameters.txt");
   pars -> print_summary();
   //in and outpaths
-  string GAUGE_FIELDS = get_path("config_path");
+  std::string GAUGE_FIELDS = pars -> get_path("config_path");
   //lattice layout from infile 
   int L0 = pars -> get_int("LT");
   int L1 = pars -> get_int("LX");
   int L2 = pars -> get_int("LY");
   int L3 = pars -> get_int("LZ");
-  int V3 = pars -> get_int("V3");
+  const int V3 = pars -> get_int("V3");
+  int V_TS = pars -> get_int("V_TS");
   //calculation parameters from infile
   int NEV = pars -> get_int("NEV");
   int V_4_LIME = pars -> get_int("V4_LIME");
-  int MAT_ENTRIES -> get_int("MAT_ENTRIES");
+  const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   //chebyshev parameters
   int LAM_L = pars -> get_int("LAM_L");
   int LAM_C = pars -> get_int("LAM_C"); 
@@ -63,6 +64,10 @@ int main(int argc, char **argv) {
   double ALPHA_2 = pars -> get_float("alpha_2");
   int ITER = pars -> get_int("iter");
 
+  //lookup tables
+  int up_3d[V3][3],down_3d[V3][3];
+  //Eigen Array
+  Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
   //N: # rows/columns, nev: desired # Eigenvalues, nconv: # converged EVs
   PetscInt nev = NEV;
   PetscInt n;
@@ -221,7 +226,7 @@ int main(int argc, char **argv) {
       //save nconv eigenvectors and eigenvalues to one file each
       //fwrite(ptr_evec, sizeof(ptr_evec[0]), MAT_ENTRIES, evectors);
       //write each eigenvector to eigensystem for check
-      eigensystem.col(i) = Eigen::Map<Eigen::Matrix< std::complex<double>, MAT_ENTRIES, 1> >(ptr_evec);
+      eigensystem.col(i) = Eigen::Map<Eigen::VectorXcd, 0 >(ptr_evec, MAT_ENTRIES);
       //fwrite(ptr_eval ,  sizeof(double) , 1, evalues );
       evals_accel.at(i) = eval;
       ierr = VecRestoreArray(xr, &ptr_evec);
