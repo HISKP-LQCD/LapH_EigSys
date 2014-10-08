@@ -1,8 +1,8 @@
 #include "eigensystem.h"
-
+static IO* const pars = IO::getInstance();
 //fix phase of eigensystem and store phase of first entry of each eigenvector
 void fix_phase(Eigen::MatrixXcd& V, Eigen::MatrixXcd& V_fix, std::vector<double>& phase) {
-
+   const int V3 = pars -> get_int("V3");
   //helper variables:
   //Number of eigenvectors
   int n_ev;

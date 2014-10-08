@@ -29,7 +29,7 @@ SLEPC_INSTALL=$(LOCAL_LIB_PATH)/jost/slepc-3.4.4
 
 MAIN = ev_ts
 
-GENERAL = config_utils io io_utils read_write par_io recover_spec shell_matop
+GENERAL = config_utils eigensystem io io_utils par_io read_write recover_spec shell_matop
 MODULES = $(GENERAL)
 
 # search path for modules

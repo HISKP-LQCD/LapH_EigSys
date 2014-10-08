@@ -32,9 +32,9 @@ void map_timeslice_to_eigen(Eigen::Matrix3cd **eigen, double *timeslice);
 
 //Write Laplacian in euclidean and colour space (ts) to PETSc-Matrix Lap 
 PetscErrorCode BuildLaplacian(Mat Lap, Eigen::Matrix3cd **ts, int iup[][3], int idown[][3]);
-void smearing_stout(Eigen::Matrix3cd **eigen_timeslice, double rho, int iter);
-void smearing_ape(Eigen::Matrix3cd **eigen_timeslice, double alpha, int iter);
-void smearing_hyp(Eigen::Matrix3cd **eigen_timeslice, double alpha_1, double alpha_2, int iter);
+void smearing_stout(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double rho, int iter);
+void smearing_ape(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double alpha, int iter);
+void smearing_hyp(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double alpha_1, double alpha_2, int iter);
 std::array< int, 2 > get_dirs(int mu);
 
 //Right displacement of one eigensystem

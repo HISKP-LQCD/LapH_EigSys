@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   pars -> set_values("parameters.txt");
   pars -> print_summary();
   //in and outpaths
-  std::string GAUGE_FIELDS = pars -> get_path("config_path");
+  std::string GAUGE_FIELDS = pars -> get_path("conf");
   //lattice layout from infile 
   int L0 = pars -> get_int("LT");
   int L1 = pars -> get_int("LX");
@@ -57,8 +57,8 @@ int main(int argc, char **argv) {
   int V_4_LIME = pars -> get_int("V4_LIME");
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   //chebyshev parameters
-  int LAM_L = pars -> get_int("LAM_L");
-  int LAM_C = pars -> get_int("LAM_C"); 
+  int LAM_L = pars -> get_int("lambda_l");
+  int LAM_C = pars -> get_int("lambda_c"); 
   //hyp-smearing parameters
   double ALPHA_1 = pars -> get_float("alpha_1");
   double ALPHA_2 = pars -> get_float("alpha_2");
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
     map_timeslice_to_eigen(eigen_timeslice, timeslice);
 
     //Apply Smearing algorithm to timeslice ts
-    smearing_hyp(eigen_timeslice,ALPHA_1, ALPHA_2, ITER);
+    smearing_hyp(up_3d, down_3d, eigen_timeslice,ALPHA_1, ALPHA_2, ITER);
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
     ierr = MatCreateShell(PETSC_COMM_WORLD,MAT_ENTRIES,MAT_ENTRIES,PETSC_DECIDE,

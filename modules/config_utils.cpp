@@ -214,7 +214,7 @@ static int decor (int dir, int smear_plane) {
 //Smearing schemes
 //Stout-Smearing
 
-void smearing_stout(Eigen::Matrix3cd **eigen_timeslice, double rho, int iter) {
+void smearing_stout(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double rho, int iter) {
 
   int V3 = pars -> get_int("V3");
   std::complex<double> im_half(0,0.5);
@@ -265,7 +265,7 @@ void smearing_stout(Eigen::Matrix3cd **eigen_timeslice, double rho, int iter) {
 }
 
 //Ape-Smearing
-void smearing_ape(Eigen::Matrix3cd **eigen_timeslice, double alpha, int iter){
+void smearing_ape(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double alpha, int iter){
 
   int V3 = pars -> get_int("V3");
   Eigen::Matrix3cd **eigen_timeslice_ts = new Eigen::Matrix3cd *[V3]; 
@@ -312,7 +312,7 @@ void smearing_ape(Eigen::Matrix3cd **eigen_timeslice, double alpha, int iter){
 
 //HYP-Smearing
 
-void smearing_hyp(Eigen::Matrix3cd **eigen_timeslice, double alpha_1, double alpha_2, int iter) {
+void smearing_hyp(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double alpha_1, double alpha_2, int iter) {
   
   int V3 = pars -> get_int("V3");
   //temporal timeslice twice the size for decorated links 
@@ -518,7 +518,7 @@ double plaque_timeslice(Eigen::Matrix3cd **ts, int iup[][3] , int idown[][3]){
       for (int dir_2 = 0; dir_2 < 3; ++dir_2) {
         //make sure not to run in same direction
         if (dir_1 != dir_2) {
-          plaquette += get_plaque_nx_ny(dir_1, dir_2, i, up_3d, down_3d, ts);
+          plaquette += get_plaque_nx_ny(dir_1, dir_2, i, iup, idown, ts);
           ++cnt;
         }
       }//loop dir_2

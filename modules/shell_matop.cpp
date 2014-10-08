@@ -13,11 +13,11 @@ static IO* const pars = IO::getInstance();
 Eigen::Vector3cd, respectively
 After this the Multiplication of the Laplace takes place. Result is stored
 in yps, which then is written to the array at *y again. */
-static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
+static void tv2(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, int nx,const PetscScalar *x,PetscScalar *y) {
 
   const int V3 = pars -> get_int("V3");
-  const double LAM_L = pars -> get_float("LAM_L");
-  const double LAM_C = pars -> get_float("LAM_C");
+  const double LAM_L = pars -> get_float("lambda_l");
+  const double LAM_C = pars -> get_float("lambda_c");
   //define vectors
   std::vector<Eigen::Vector3cd> iks (V3, Eigen::Vector3cd::Ones());
   std::vector<Eigen::Vector3cd> yps (V3, Eigen::Vector3cd::Zero());
@@ -95,16 +95,17 @@ static void subtract_arrays(const PetscScalar *b, const PetscScalar *a, PetscSca
 }
 
 //Calculating Chebyshev-Polynomial T8 of B acting on x in a 4-Step process
-static void tv(int nx, const PetscScalar *x,PetscScalar *y) {
+static void tv(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice,
+ int nx, const PetscScalar *x,PetscScalar *y) {
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   PetscScalar tmp[MAT_ENTRIES];
   PetscScalar tmp1[MAT_ENTRIES];
 
   //Step 1 
   //storing B*x in tmp
-  tv2(nx, &x[0], &tmp[0]);
+  tv2(up_3d, down_3d, eigen_timeslice, nx, &x[0], &tmp[0]);
   //Calculating B(Bx);
-  tv2(nx, &tmp[0], &tmp[0]);
+  tv2(up_3d, down_3d, eigen_timeslice, nx, &tmp[0], &tmp[0]);
   //Scale tmp with 128 and px with 256
   scale_array(128, &tmp[0], &tmp[0]);
   scale_array(256, &x[0], &tmp1[0]);
@@ -112,20 +113,20 @@ static void tv(int nx, const PetscScalar *x,PetscScalar *y) {
   subtract_arrays(&tmp1[0], &tmp[0], &y[0]);
 
   //Step 2
-  tv2(nx, &y[0], &tmp[0]);
-  tv2(nx, &tmp[0], &tmp[0]);
+  tv2(up_3d, down_3d, eigen_timeslice, nx, &y[0], &tmp[0]);
+  tv2(up_3d, down_3d, eigen_timeslice, nx, &tmp[0], &tmp[0]);
   scale_array(160, &x[0], &tmp1[0]);
   add_arrays(&tmp1[0], &tmp[0], &y[0]);
 
   //Step 3
-  tv2(nx, &y[0], &tmp[0]);
-  tv2(nx, &tmp[0], &tmp[0]);
+  tv2(up_3d, down_3d, eigen_timeslice, nx, &y[0], &tmp[0]);
+  tv2(up_3d, down_3d, eigen_timeslice, nx, &tmp[0], &tmp[0]);
   scale_array(32, &x[0], &tmp1[0]);
   subtract_arrays(&tmp1[0], &tmp[0], &y[0]);
   
   //Step 4
-  tv2(nx, &y[0], &tmp[0]);
-  tv2(nx, &tmp[0], &tmp[0]);
+  tv2(up_3d, down_3d, eigen_timeslice, nx, &y[0], &tmp[0]);
+  tv2(up_3d, down_3d, eigen_timeslice, nx, &tmp[0], &tmp[0]);
   add_arrays(&tmp[0],&x[0],&y[0]);
 
 }
@@ -161,7 +162,7 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y) {
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   //choose tv instead of tv2 to enable chebyshev acceleration
-  tv(nx,&px[0],&py[0]);
+  tv(up_3d, down_3d, eigen_timeslice, nx,&px[0],&py[0]);
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
