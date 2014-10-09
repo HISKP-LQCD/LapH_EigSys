@@ -19,6 +19,7 @@
 #include "io.h"
 #include "par_io.h"
 #include "shell_matop.h"
+#include "timeslice.h"
 #include "variables.h"
 #include "recover_spec.h"
 #include "read_write.h"
@@ -67,8 +68,9 @@ int main(int argc, char **argv) {
   //lookup tables
   int up_3d[V3][3],down_3d[V3][3];
   //Eigen Array
-  Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
+  //Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
   //N: # rows/columns, nev: desired # Eigenvalues, nconv: # converged EVs
+  Tslice* ts = Tslice::getInstance();
   PetscInt nev = NEV;
   PetscInt n;
   PetscInt nconv;
@@ -90,12 +92,12 @@ int main(int argc, char **argv) {
   std::complex<double> trc;
 
   //Allocate Eigen Array to hold timeslice
-  for ( auto i = 0; i < V3; ++i ) {
-    eigen_timeslice[i] = new Eigen::Matrix3cd[3];
-    for (auto dir = 0; dir < 3; ++dir) {
-      eigen_timeslice[i][dir] = Eigen::Matrix3cd::Identity();
-    }
-  }
+  //for ( auto i = 0; i < V3; ++i ) {
+  //  eigen_timeslice[i] = new Eigen::Matrix3cd[3];
+  //  for (auto dir = 0; dir < 3; ++dir) {
+  //    eigen_timeslice[i][dir] = Eigen::Matrix3cd::Identity();
+  //  }
+  //}
   //Initialize lookup-tables
   hopping3d(up_3d, down_3d);
   //set up output
@@ -126,10 +128,10 @@ int main(int argc, char **argv) {
     double* timeslice = configuration + (ts*V_TS);
 
     //Write Timeslice in Eigen Array                                                  
-    map_timeslice_to_eigen(eigen_timeslice, timeslice);
-
+    //map_timeslice_to_eigen(eigen_timeslice, timeslice);
+    ts -> map_timeslice_to_eigen(timeslice);
     //Apply Smearing algorithm to timeslice ts
-    smearing_hyp(up_3d, down_3d, eigen_timeslice,ALPHA_1, ALPHA_2, ITER);
+    ts -> smearing_hyp(up_3d, down_3d, ALPHA_1, ALPHA_2, ITER);
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
     ierr = MatCreateShell(PETSC_COMM_WORLD,MAT_ENTRIES,MAT_ENTRIES,PETSC_DECIDE,
