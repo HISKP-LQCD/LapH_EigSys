@@ -5,15 +5,17 @@
  *      Author: helmes
  */
 #include "shell_matop.h"
+#include "timeslice.h"
 #include "par_io.h"
 
 static IO* const pars = IO::getInstance();
+static Timeslice* const ts = Timeslice::getInstance();
 
 /*tv copies the arrays pointed to by *x and *y to std::vectors iks, yps of type
 Eigen::Vector3cd, respectively
 After this the Multiplication of the Laplace takes place. Result is stored
 in yps, which then is written to the array at *y again. */
-static void tv2(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, int nx,const PetscScalar *x,PetscScalar *y) {
+static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
 
   const int V3 = pars -> get_int("V3");
   const double LAM_L = pars -> get_float("lambda_l");
@@ -52,13 +54,19 @@ static void tv2(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd *
                   - 200.0 * (iks.at(k)));
         }*/
         //else {
-          yps.at(k) = c * (eigen_timeslice[k][0]*iks.at( up_3d[k][0] ) + (eigen_timeslice[ down_3d[k][0] ][0].adjoint())
-                    * iks.at( down_3d[k][0] ) + eigen_timeslice[k][1] * iks.at( up_3d[k][1] )
-                    + (eigen_timeslice[ down_3d[k][1] ][1].adjoint()) * iks.at( down_3d[k][1] )
-                    + eigen_timeslice[k][2] * iks.at( up_3d[k][2] )
-                    + (eigen_timeslice[ down_3d[k][2] ][2].adjoint()) * iks.at( down_3d[k][2] )
+          yps.at(k) = c * ( (ts -> get_gauge(k,0)) * iks.at( up_3d[k][0] ) + ( (ts -> get_gauge(down_3d[k][0], 0)).adjoint())
+                    * iks.at( down_3d[k][0] ) + (ts -> get_gauge(k,1)) * iks.at( up_3d[k][1] )
+                    + (ts -> get_gauge(down_3d[k][1],1).adjoint()) * iks.at( down_3d[k][1] )
+                    + ts -> get_gauge(k,2) * iks.at( up_3d[k][2] )
+                    + (ts -> get_gauge( down_3d[k][2], 2).adjoint()) * iks.at( down_3d[k][2] )
                     - 6.0 * (iks.at(k))) + a * (iks.at(k));
-          //std::cout << U[k][0] << " " << down_3d[k][0] << " " << up_3d[k][1] << " " << down_3d[k][1] << " " << up_3d[k][2] << " " << down_3d[k][2] << std::endl;
+//          yps.at(k) = c * (eigen_timeslice[k][0]*iks.at( up_3d[k][0] ) + (eigen_timeslice[ down_3d[k][0] ][0].adjoint())
+//                    * iks.at( down_3d[k][0] ) + eigen_timeslice[k][1] * iks.at( up_3d[k][1] )
+//                    + (eigen_timeslice[ down_3d[k][1] ][1].adjoint()) * iks.at( down_3d[k][1] )
+//                    + eigen_timeslice[k][2] * iks.at( up_3d[k][2] )
+//                    + (eigen_timeslice[ down_3d[k][2] ][2].adjoint()) * iks.at( down_3d[k][2] )
+//                    - 6.0 * (iks.at(k))) + a * (iks.at(k));
+//          //std::cout << U[k][0] << " " << down_3d[k][0] << " " << up_3d[k][1] << " " << down_3d[k][1] << " " << up_3d[k][2] << " " << down_3d[k][2] << std::endl;
         //}
   }
   //copy vectors back to Petsc-arrays

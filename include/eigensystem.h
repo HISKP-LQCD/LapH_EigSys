@@ -8,5 +8,4 @@
 //fix phase of eigensystem and store phase of first entry of each eigenvector
 void fix_phase(Eigen::MatrixXcd& V, Eigen::MatrixXcd& V_fix, std::vector<double>& phase);
 
-
 #endif
