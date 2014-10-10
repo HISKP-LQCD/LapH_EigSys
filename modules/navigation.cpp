@@ -12,22 +12,28 @@ Nav* Nav::getInstance() {
   return &theInstance;
 }
 
-//Constructor including right initialization
+//Constructor including right allocation
 Nav::Nav() {
   //V3 from parameters
   const int vol = paras -> get_int("V3");
-  iup.resize(boost::extents[vol][3]);
-  idown.resize(boost::extents[vol][3]);
+  iup = new int *[vol];
+  idown = new int *[vol];
 
-//  iup = new int *[vol];
-//  idown = new int *[vol];
-
-//  for (int i = 0; i < vol; ++i){
-//    iup[i] = new int[3];
-//    idown[i] = new int[3];
-//  }
+  for (int i = 0; i < vol; ++i){
+    iup[i] = new int[3];
+    idown[i] = new int[3];
+  }
 }
-
+//Destructor freeing all memory
+Nav::~Nav() {
+  const int vol = paras -> get_int("V3");
+  for(int i =0; i < vol; ++i) {
+   delete[] iup[i]; 
+   delete[] idown[i]; 
+  }
+  delete iup;
+  delete idown;
+}
 void Nav::init() {
   //const ints vor 3d volume, assuming L1 = L2;
   const int L1 = paras -> get_int("LX");

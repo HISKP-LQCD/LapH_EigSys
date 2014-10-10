@@ -106,7 +106,7 @@ void IO::print_summary() {
   std::cout << "Results are stored in:                             " << result_path << std::endl;
 }
 
-const int IO::get_int(std::string spec) {
+int IO::get_int(std::string spec) {
   if (spec == "LT") {
     return LT;
   }

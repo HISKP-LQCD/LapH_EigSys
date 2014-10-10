@@ -12,62 +12,63 @@
 #include "config_utils.h"
 
 static IO* const pars = IO::getInstance();
-
-void hopping3d(int iup[][3], int idown[][3]){
-  
-  int L0 = pars -> get_int("LX");
-  int L1 = pars -> get_int("LY");
-  int L2 = pars -> get_int("LZ");
-
-
-  int* x0_h = new int[3];
-  int* x1_h = new int[3];
-  int* x2_h = new int[3];
-
-  int L0_h = L1 * L2;
-
-  for ( int x0 = 0; x0 < L1; ++x0 ) {//loop x0
-    x0_h[2] = x0 * L0_h;
-    //negative direction (index at lower boundary)
-    if ((x0_h[0] = x0 - 1) < 0) x0_h[0] = L0_h * (L1 - 1);
-    else x0_h[0] *= L0_h;
-    //positive direction (index at upper boundary)
-    if ((x0_h[1] = x0 + 1) == L1) x0_h[1] = 0;
-    else x0_h[1] *= L0_h;
-
-    for ( int x1 = 0; x1 < L1; ++x1 ) {//loop x1
-      x1_h[2] = x1 * L2;
-      //neg. dir.
-      if ((x1_h[0] = x1 - 1) < 0) x1_h[0] = L2 * (L1 - 1);
-      else x1_h[0] *= L2;
-      //pos. dir.
-      if ((x1_h[1] = x1 + 1) == L1) x1_h[1] = 0;
-      else x1_h[1] *= L2;
-
-      for ( int x2 = 0; x2 < L2; ++x2 ) {//loop x2
-        x2_h[2] = x2;
-        //neg. dir.
-        if ((x2_h[0] = x2 - 1) < 0) x2_h[0] = L2 -1;
-        //pos. dir.
-        if ((x2_h[1] = x2 +1) == L2) x2_h[1] = 0;
-        //overall volume index
-        int i = x0_h[2] + x1_h[2] + x2_h[2];
-        //std::cout << x0 << " " << x1 << " " << x2 << " " << i << std::endl;
-        //upwards
-        iup[i][0] = x0_h[1] + x1_h[2] + x2_h[2];
-        iup[i][1] = x0_h[2] + x1_h[1] + x2_h[2];
-        iup[i][2] = x0_h[2] + x1_h[2] + x2_h[1];
-        //downwards
-        idown[i][0] = x0_h[0] + x1_h[2] + x2_h[2];
-        idown[i][1] = x0_h[2] + x1_h[0] + x2_h[2];
-        idown[i][2] = x0_h[2] + x1_h[2] + x2_h[0];
-      }//end loop x2
-    }//end loop x1
-  }//end loop x0
-  delete x0_h;
-  delete x1_h;
-  delete x2_h;
-}
+static Nav* const lookup = Nav::getInstance();
+//Moved to own class navigation
+//void hopping3d(int iup[][3], int idown[][3]){
+//  
+//  int L0 = pars -> get_int("LX");
+//  int L1 = pars -> get_int("LY");
+//  int L2 = pars -> get_int("LZ");
+//
+//
+//  int* x0_h = new int[3];
+//  int* x1_h = new int[3];
+//  int* x2_h = new int[3];
+//
+//  int L0_h = L1 * L2;
+//
+//  for ( int x0 = 0; x0 < L1; ++x0 ) {//loop x0
+//    x0_h[2] = x0 * L0_h;
+//    //negative direction (index at lower boundary)
+//    if ((x0_h[0] = x0 - 1) < 0) x0_h[0] = L0_h * (L1 - 1);
+//    else x0_h[0] *= L0_h;
+//    //positive direction (index at upper boundary)
+//    if ((x0_h[1] = x0 + 1) == L1) x0_h[1] = 0;
+//    else x0_h[1] *= L0_h;
+//
+//    for ( int x1 = 0; x1 < L1; ++x1 ) {//loop x1
+//      x1_h[2] = x1 * L2;
+//      //neg. dir.
+//      if ((x1_h[0] = x1 - 1) < 0) x1_h[0] = L2 * (L1 - 1);
+//      else x1_h[0] *= L2;
+//      //pos. dir.
+//      if ((x1_h[1] = x1 + 1) == L1) x1_h[1] = 0;
+//      else x1_h[1] *= L2;
+//
+//      for ( int x2 = 0; x2 < L2; ++x2 ) {//loop x2
+//        x2_h[2] = x2;
+//        //neg. dir.
+//        if ((x2_h[0] = x2 - 1) < 0) x2_h[0] = L2 -1;
+//        //pos. dir.
+//        if ((x2_h[1] = x2 +1) == L2) x2_h[1] = 0;
+//        //overall volume index
+//        int i = x0_h[2] + x1_h[2] + x2_h[2];
+//        //std::cout << x0 << " " << x1 << " " << x2 << " " << i << std::endl;
+//        //upwards
+//        iup[i][0] = x0_h[1] + x1_h[2] + x2_h[2];
+//        iup[i][1] = x0_h[2] + x1_h[1] + x2_h[2];
+//        iup[i][2] = x0_h[2] + x1_h[2] + x2_h[1];
+//        //downwards
+//        idown[i][0] = x0_h[0] + x1_h[2] + x2_h[2];
+//        idown[i][1] = x0_h[2] + x1_h[0] + x2_h[2];
+//        idown[i][2] = x0_h[2] + x1_h[2] + x2_h[0];
+//      }//end loop x2
+//    }//end loop x1
+//  }//end loop x0
+//  delete x0_h;
+//  delete x1_h;
+//  delete x2_h;
+//}
 //Moved to Timeslice.h
 ////Get SU(3)-Matrices from timeslice and sort them into Eigen Array
 //void map_timeslice_to_eigen(Eigen::Matrix3cd **eigen, double *timeslice) {
@@ -116,8 +117,7 @@ void hopping3d(int iup[][3], int idown[][3]){
 //}
 
 //Maps SU(3)-Matrices of ts to sparse Laplacian matrix Lap
-PetscErrorCode BuildLaplacian(Mat Lap, Eigen::Matrix3cd **ts,
-    int iup[][3], int idown[][3]) {
+PetscErrorCode BuildLaplacian(Mat Lap, Eigen::Matrix3cd **ts) {
   int V3 = pars -> get_int("V3");
   PetscErrorCode error;
   //# of transferred elements
@@ -135,8 +135,8 @@ PetscErrorCode BuildLaplacian(Mat Lap, Eigen::Matrix3cd **ts,
     CHKERRQ(error);
     n_el += 3;
     for ( int mu = 0; mu < 3; ++mu ) {//direction of matrix
-      register const int up = iup[i][mu];
-      register const int down = idown[i][mu];
+      register const int up = lookup -> get_up(i,mu);
+      register const int down = lookup -> get_dn(i,mu);
       for ( int a = 0; a < 3; ++a ) {//colour a
         register const size_t k_prime = k+a;
         for ( int b = 0; b < 3; ++b ) {//colour b
@@ -441,7 +441,7 @@ static Eigen::Matrix3cd proj_to_su3_imp(Eigen::Matrix3cd& in){
 //}
 
 //Displacements
-
+//TODO: replace lookup tables
 //displacement in one direction i acting to the right
 void right_displacement_one_dir(Eigen::Matrix3cd** config, const int iup[][3],
     const int idown[][3], const int dir, Eigen::MatrixXcd& V, Eigen::MatrixXcd& W ) {
@@ -556,8 +556,8 @@ void transform_ts( Eigen::Matrix3cd **config,
   build_gauge_array(Omega);
   write_gauge_matrices("ts_trafo_log.bin", Omega);
   */
-  for ( auto i = 0; i < V3; ++i ) {
-    for ( auto mu = 0; mu < 3; ++mu ) {
+  for ( int i = 0; i < V3; ++i ) {
+    for ( int mu = 0; mu < 3; ++mu ) {
       int j = up[i][mu];
       gauge_config[i][mu] = (Omega[i].adjoint())*(config[i][mu]*Omega[j]);
     //std::cout << "gauge config: \n" << gauge_config[i][mu] << "\n\n";
@@ -619,9 +619,9 @@ void construct_random_su3(Eigen::Matrix3cd& x) {
   
   std::array<std::complex<double>, 9 > random;
   //9 complex random numbers
-  for (auto &c : random) { 
-    c.real( (double(rand()) / RAND_MAX ) - 0.5 );
-    c.imag( (double(rand()) / RAND_MAX ) - 0.5 );
+  for (int c = 0; c < random.size(); ++c) {
+    random.at(c) = std::complex<double>( (double(rand()) / RAND_MAX ) - 0.5,(double(rand()) / RAND_MAX ) - 0.5 ); 
+        
   }
   x << random.at(0), random.at(1), random.at(2),
       random.at(3), random.at(4), random.at(5),

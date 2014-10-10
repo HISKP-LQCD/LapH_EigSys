@@ -61,7 +61,7 @@ class IO {
     //print summary of layout
     void print_summary();
     //get integer valued variable
-   const int get_int(std::string);
+    int get_int(std::string);
     //get floating point valued variable
     double get_float(std::string);
     //get path to configs or destination

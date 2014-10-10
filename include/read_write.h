@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
-
+#include <vector>
 #include <Eigen/Eigen>
 
 //#include "sourceshape.h"
@@ -38,8 +38,8 @@ void read_gauge_matrices (const char* prefix, Eigen::Matrix3cd* G);
 //Write Eigenvectors from one timeslice in binary format to file
 void write_eig_sys_bin(const char* prefix, const int config_i, const int t, const int nb_ev, Eigen::MatrixXcd& V);
 //Write Results for source shape to ASCII-file
-void write_sourceshape_ascii(const char* prefix, const int config,
-    const int tslice, const int nb_ev, const std::vector<std::pair<double,double> >& results);
+//void write_sourceshape_ascii(const char* prefix, const int config,
+//    const int tslice, const int nb_ev, const std::vector<std::pair<double,double> >& results);
 
 //Write Results for source shape to binary file
 void write_sourceshape_bin(const char* prefix, const int config,

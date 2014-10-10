@@ -1,5 +1,6 @@
-#include "par_io.h"
+#include "timeslice.h"
 static IO* const pars=IO::getInstance();
+static Nav* const lookup = Nav::getInstance();
 
 Tslice* Tslice::getInstance(){
   static Tslice theInstance;
@@ -7,15 +8,24 @@ Tslice* Tslice::getInstance(){
 }
 //Constructor
 Tslice::Tslice() {
-  pars -> get_int("V3");
+  const int V3 = pars -> get_int("V3");
   Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
   //Allocate Eigen Array to hold timeslice
-  for ( auto i = 0; i < V3; ++i ) {
+  for ( int i = 0; i < V3; ++i ) {
     eigen_timeslice[i] = new Eigen::Matrix3cd[3];
-    for (auto dir = 0; dir < 3; ++dir) {
+    for (int dir = 0; dir < 3; ++dir) {
       eigen_timeslice[i][dir] = Eigen::Matrix3cd::Identity();
     }
   }
+}
+
+//Destructor
+Tslice::~Tslice(){
+  //delete configuration;
+  const int V3 = pars -> get_int("V3");
+
+  for (int j = 0; j < V3; ++j) delete[] eigen_timeslice[j];
+  delete eigen_timeslice;
 }
 
 //mapping from gauge config to Eigen 3x3 complex matrix arrays
@@ -123,12 +133,12 @@ static int decor (int dir, int smear_plane) {
 //Smearing schemes
 //Stout-Smearing
 
-void Tslice::smearing_stout(const int up_3d[][3], const int down_3d[][3], double rho, int iter) {
+void Tslice::smearing_stout(double rho, int iter) {
 
   int V3 = pars -> get_int("V3");
   std::complex<double> im_half(0,0.5);
   Eigen::Matrix3cd **eigen_timeslice_ts = new Eigen::Matrix3cd *[V3]; 
-  for ( auto i = 0; i < V3; ++i ) {
+  for ( int i = 0; i < V3; ++i ) {
     eigen_timeslice_ts[i] = new Eigen::Matrix3cd[3];
   }
   for (int j = 0; j < iter; ++j) {
@@ -139,15 +149,15 @@ void Tslice::smearing_stout(const int up_3d[][3], const int down_3d[][3], double
         //For each link calculate staples summing them up
         for (int not_dir = 0; not_dir < 3; ++not_dir) {
           if (dir != not_dir) {
-            int mu = up_3d[i][not_dir];
-            int nu = up_3d[mu][dir];
-            int eta = down_3d[nu][not_dir];
+            int mu = lookup -> get_up(i, not_dir);
+            int nu = lookup -> get_up(mu, dir);
+            int eta = lookup -> get_dn(nu, not_dir);
             //Staples in positive direction
             staple += eigen_timeslice[i][not_dir]*
               (eigen_timeslice[mu][dir]*(eigen_timeslice[eta][not_dir].adjoint()));
 
-            mu = down_3d[i][not_dir];
-            nu = up_3d[mu][dir];
+            mu = lookup -> get_dn(i, not_dir);
+            nu = lookup -> get_up(mu, dir);
             //Staples in negative direction
             staple += (eigen_timeslice[mu][not_dir].adjoint())*
               (eigen_timeslice[mu][dir]*eigen_timeslice[nu][dir]);
@@ -159,8 +169,8 @@ void Tslice::smearing_stout(const int up_3d[][3], const int down_3d[][3], double
         eigen_timeslice_ts[i][dir] = ( ( q*(-1) ).exp() ) * eigen_timeslice[i][dir];
       }
     }
-    for ( auto i = 0; i < V3; ++i ) {
-      for ( auto mu = 0; mu < 3; ++mu) {
+    for ( int i = 0; i < V3; ++i ) {
+      for ( int mu = 0; mu < 3; ++mu) {
         eigen_timeslice[i][mu] = eigen_timeslice_ts[i][mu];
       }
     }
@@ -174,11 +184,11 @@ void Tslice::smearing_stout(const int up_3d[][3], const int down_3d[][3], double
 }
 
 //Ape-Smearing
-void Tslice::smearing_ape(const int up_3d[][3], const int down_3d[][3], double alpha, int iter){
+void Tslice::smearing_ape( double alpha, int iter){
 
   int V3 = pars -> get_int("V3");
   Eigen::Matrix3cd **eigen_timeslice_ts = new Eigen::Matrix3cd *[V3]; 
-  for ( auto i = 0; i < V3; ++i ) {
+  for ( int i = 0; i < V3; ++i ) {
     eigen_timeslice_ts[i] = new Eigen::Matrix3cd[3];
   }
   for (int j = 0; j < iter; ++j) {
@@ -189,15 +199,15 @@ void Tslice::smearing_ape(const int up_3d[][3], const int down_3d[][3], double a
         //Position indices mu nu eta
         for (int not_dir = 0; not_dir < 3; ++not_dir) {
           if (dir != not_dir) {
-            int mu = up_3d[i][not_dir];
-            int nu = up_3d[mu][dir];
-            int eta = down_3d[nu][not_dir];
+            int mu = lookup -> get_up(i,not_dir);
+            int nu = lookup -> get_up(mu, dir);
+            int eta = lookup -> get_dn(nu, not_dir);
             //Staples in positive direction
             staple += eigen_timeslice[i][not_dir]*
               (eigen_timeslice[mu][dir]*(eigen_timeslice[eta][not_dir].adjoint()));
 
-            mu = down_3d[i][not_dir];
-            nu = up_3d[mu][dir];
+            mu = lookup -> get_dn(i, not_dir);
+            nu = lookup -> get_up(mu, dir);
             //Staples in negative direction
             staple += (eigen_timeslice[mu][not_dir].adjoint())*
               (eigen_timeslice[mu][dir]*eigen_timeslice[nu][dir]);
@@ -206,8 +216,8 @@ void Tslice::smearing_ape(const int up_3d[][3], const int down_3d[][3], double a
         eigen_timeslice_ts[i][dir] = (eigen_timeslice[i][dir] * (1.-alpha)) + (staple * alpha/4.);
       }
     }
-    for ( auto i = 0; i < V3; ++i ) {
-      for ( auto mu = 0; mu < 3; ++mu) {
+    for ( int i = 0; i < V3; ++i ) {
+      for ( int mu = 0; mu < 3; ++mu) {
         eigen_timeslice[i][mu] = proj_to_su3_imp(eigen_timeslice_ts[i][mu]);
       }
     }
@@ -221,18 +231,18 @@ void Tslice::smearing_ape(const int up_3d[][3], const int down_3d[][3], double a
 
 //HYP-Smearing
 
-void Tslice::smearing_hyp(const int up_3d[][3], const int down_3d[][3], double alpha_1, double alpha_2, int iter) {
+void Tslice::smearing_hyp( double alpha_1, double alpha_2, int iter) {
   
   int V3 = pars -> get_int("V3");
   //temporal timeslice twice the size for decorated links 
   Eigen::Matrix3cd **dec_timeslice = new Eigen::Matrix3cd *[V3];
-  for (auto vol = 0; vol < V3; ++vol) {
+  for (int vol = 0; vol < V3; ++vol) {
     dec_timeslice[vol] = new Eigen::Matrix3cd[6];
   }
 
   //temporal timeslice from decorated links
   Eigen::Matrix3cd **eigen_timeslice_ts = new Eigen::Matrix3cd *[V3]; 
-  for ( auto i = 0; i < V3; ++i ) {
+  for ( int i = 0; i < V3; ++i ) {
     eigen_timeslice_ts[i] = new Eigen::Matrix3cd[3];
   }
   
@@ -241,25 +251,25 @@ void Tslice::smearing_hyp(const int up_3d[][3], const int down_3d[][3], double a
   int mu, nu, eta;
   for (int run = 0; run < iter; ++run) {
     //calculate inner staple from original timeslice, store in dec_timeslice each link can get smeared in two planes
-    for (auto vol = 0; vol < V3; ++vol) {
-      for (auto dir = 0; dir < 3; ++dir) {
+    for (int vol = 0; vol < V3; ++vol) {
+      for (int dir = 0; dir < 3; ++dir) {
         //inner staple
         Eigen::Matrix3cd inner_staple = Eigen::Matrix3cd::Zero();
         std::array< Eigen::Matrix3cd, 2 > tmp_staples;
         std::array<int, 2> perpendics = get_dirs( dir );
-        for (auto it_perp_dir = perpendics.begin(); it_perp_dir != perpendics.end(); ++it_perp_dir ) {
+        for (int* it_perp_dir = perpendics.begin(); it_perp_dir != perpendics.end(); ++it_perp_dir ) {
           int perp_dir = *it_perp_dir;
           //up-type smearing_indices
-          mu = up_3d[vol][perp_dir];
-          nu = up_3d[mu][dir];
-          eta = up_3d[vol][dir];
+          mu = lookup -> get_up(vol, perp_dir);
+          nu = lookup ->  get_up(mu, dir);
+          eta = lookup -> get_up(vol, dir);
 
           //product of up matrices
           inner_staple = eigen_timeslice[vol][perp_dir] * ( eigen_timeslice[mu][dir] *
                         ( eigen_timeslice[eta][perp_dir].adjoint() ) ); 
           //down-type smearing indices
-          mu = down_3d[vol][perp_dir];
-          nu = up_3d[mu][dir];
+          mu = lookup -> get_dn(vol, perp_dir);
+          nu = lookup -> get_up(mu, dir);
 
           //eta is same endpoint no adjoint necessary here
           //product of down matrices
@@ -301,9 +311,9 @@ void Tslice::smearing_hyp(const int up_3d[][3], const int down_3d[][3], double a
 
               //calculate plane in which was smeared
               int plane = ( (dir+1) ^ (not_dir+1) ) - 1;
-              mu = up_3d[i][not_dir];
-              nu = up_3d[mu][dir];
-              eta = down_3d[nu][not_dir];
+              mu = lookup -> get_up(i, not_dir);
+              nu = lookup -> get_up(mu, dir);
+              eta = lookup -> get_up(nu, not_dir);
 
               //Staples in positive direction
               //replace directions by appropriate decor 
@@ -315,8 +325,8 @@ void Tslice::smearing_hyp(const int up_3d[][3], const int down_3d[][3], double a
 /*           if(i == (11*L2*L3+19*L3+29)&& run == 0)   std::cout << "dir, i: " << dir << " " << i << "\n" << dec_timeslice[i][a]*
                 (dec_timeslice[mu][b]*(dec_timeslice[eta][a].adjoint())) << "\n\n";
                 */
-              mu = down_3d[i][not_dir];
-              nu = up_3d[mu][dir];
+              mu = lookup -> get_dn(i, not_dir);
+              nu = lookup -> get_up(mu, dir);
             
               //Staples in negative direction
               outer_staple += (dec_timeslice[mu][a].adjoint())*
@@ -330,8 +340,8 @@ void Tslice::smearing_hyp(const int up_3d[][3], const int down_3d[][3], double a
           eigen_timeslice_ts[i][dir] = (eigen_timeslice[i][dir] * (1.-alpha_1)) + (outer_staple * alpha_1/4.);
         }
       }
-      for ( auto i = 0; i < V3; ++i ) {
-        for ( auto mu = 0; mu < 3; ++mu) {
+      for ( int i = 0; i < V3; ++i ) {
+        for ( int mu = 0; mu < 3; ++mu) {
           eigen_timeslice[i][mu] = proj_to_su3_imp(eigen_timeslice_ts[i][mu]);
           //eigen_timeslice[i][mu] = eigen_timeslice_ts[i][mu];//without SU(3)-projection
         }

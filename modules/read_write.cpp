@@ -53,7 +53,7 @@ void read_gauge_matrices (const char* prefix, Eigen::Matrix3cd* G) {
   std::ifstream infile(prefix, std::ifstream::binary);
   std::complex<double>* matrix_su3 = new std::complex<double>[entries];
   //read from binary file named "prefix"
-  for (auto vol = 0; vol < V3; ++vol ) {
+  for (int vol = 0; vol < V3; ++vol ) {
     infile.read( reinterpret_cast<char*> (matrix_su3), 2*entries*sizeof(double) );
     G[vol] = Eigen::Map<Eigen::Matrix3cd> (matrix_su3);
   }//end vol
@@ -120,18 +120,18 @@ void write_eig_sys_bin(const char* prefix, const int config_i, const int t, cons
 
 
 //Write Results for source shape to ASCII-file
-void write_sourceshape_ascii(const char* prefix, const int config,
-    const int tslice, const int nb_ev, const std::vector<std::pair<double,double> >& results) {
-
-  char filename[200];
-  sprintf(filename, "%s_nev%d.%04d.%03d.txt", prefix, nb_ev, config, tslice);
-  std::ofstream write_file(filename);
-  for (auto& element:results) {
-    write_file << std::setprecision(12) << std::get<0>(element) << " " << std::get<1>(element) << std::endl;
-  }
-  write_file.close();
-
-}
+//void write_sourceshape_ascii(const char* prefix, const int config,
+//    const int tslice, const int nb_ev, const std::vector<std::pair<double,double> >& results) {
+//
+//  char filename[200];
+//  sprintf(filename, "%s_nev%d.%04d.%03d.txt", prefix, nb_ev, config, tslice);
+//  std::ofstream write_file(filename);
+//  for (auto& element:results) {
+//    write_file << std::setprecision(12) << std::get<0>(element) << " " << std::get<1>(element) << std::endl;
+//  }
+//  write_file.close();
+//
+//}
 
 //Write Results for source shape to binary file
 void write_sourceshape_bin(const char* prefix, const int config,
@@ -167,7 +167,7 @@ void write_gauge_matrices(const char* prefix, Eigen::Matrix3cd* G) {
   int V3 = pars -> get_int("V3");
 
   std::ofstream outfile (prefix, std::ofstream::binary);
-  for (auto vol = 0; vol < V3; ++vol) {
+  for (int vol = 0; vol < V3; ++vol) {
     outfile.write(reinterpret_cast<const char*>(&(G[vol])), 2*9*sizeof(double));
   }//end vol
   outfile.close();
@@ -177,8 +177,8 @@ void write_link_matrices_ts(const char* prefix, Eigen::Matrix3cd** links) {
 
   int V3 = pars -> get_int("V3");
   std::ofstream outfile (prefix, std::ofstream::binary);
-  for (auto vol = 0; vol < V3; ++vol) {
-    for (auto mu = 0; mu < 3; ++mu) {
+  for (int vol = 0; vol < V3; ++vol) {
+    for (int mu = 0; mu < 3; ++mu) {
       outfile.write(reinterpret_cast<const char*>(&(links[vol][mu])), 2*9*sizeof(double));
     }//end dir
   }//end vol

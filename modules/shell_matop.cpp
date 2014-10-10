@@ -5,12 +5,10 @@
  *      Author: helmes
  */
 #include "shell_matop.h"
-#include "timeslice.h"
-#include "par_io.h"
 
 static IO* const pars = IO::getInstance();
-static Timeslice* const ts = Timeslice::getInstance();
-
+static Tslice* const ts = Tslice::getInstance();
+static Nav* const lookup = Nav::getInstance();
 /*tv copies the arrays pointed to by *x and *y to std::vectors iks, yps of type
 Eigen::Vector3cd, respectively
 After this the Multiplication of the Laplace takes place. Result is stored
@@ -54,11 +52,15 @@ static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
                   - 200.0 * (iks.at(k)));
         }*/
         //else {
-          yps.at(k) = c * ( (ts -> get_gauge(k,0)) * iks.at( up_3d[k][0] ) + ( (ts -> get_gauge(down_3d[k][0], 0)).adjoint())
-                    * iks.at( down_3d[k][0] ) + (ts -> get_gauge(k,1)) * iks.at( up_3d[k][1] )
-                    + (ts -> get_gauge(down_3d[k][1],1).adjoint()) * iks.at( down_3d[k][1] )
-                    + ts -> get_gauge(k,2) * iks.at( up_3d[k][2] )
-                    + (ts -> get_gauge( down_3d[k][2], 2).adjoint()) * iks.at( down_3d[k][2] )
+          yps.at(k) = c * ( (ts -> get_gauge(k,0)) * iks.at( lookup -> get_up(k,0) )
+ 		    + ( (ts -> get_gauge( lookup -> get_dn(k,0), 0)).adjoint())
+                    * iks.at( lookup -> get_dn(k,0) ) 
+		    + (ts -> get_gauge(k,1)) * iks.at( lookup -> get_up(k,1) )
+                    + (ts -> get_gauge( lookup -> get_dn(k,1),1).adjoint()) 
+		    * iks.at( lookup -> get_dn(k,1) )
+                    + ts -> get_gauge(k,2) * iks.at( lookup -> get_up(k,2) )
+                    + (ts -> get_gauge( lookup -> get_dn(k, 2), 2).adjoint())
+		    * iks.at( lookup -> get_dn(k,2) )
                     - 6.0 * (iks.at(k))) + a * (iks.at(k));
 //          yps.at(k) = c * (eigen_timeslice[k][0]*iks.at( up_3d[k][0] ) + (eigen_timeslice[ down_3d[k][0] ][0].adjoint())
 //                    * iks.at( down_3d[k][0] ) + eigen_timeslice[k][1] * iks.at( up_3d[k][1] )
@@ -103,17 +105,16 @@ static void subtract_arrays(const PetscScalar *b, const PetscScalar *a, PetscSca
 }
 
 //Calculating Chebyshev-Polynomial T8 of B acting on x in a 4-Step process
-static void tv(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice,
- int nx, const PetscScalar *x,PetscScalar *y) {
+static void tv( int nx, const PetscScalar *x,PetscScalar *y) {
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   PetscScalar tmp[MAT_ENTRIES];
   PetscScalar tmp1[MAT_ENTRIES];
 
   //Step 1 
   //storing B*x in tmp
-  tv2(up_3d, down_3d, eigen_timeslice, nx, &x[0], &tmp[0]);
+  tv2( nx, &x[0], &tmp[0]);
   //Calculating B(Bx);
-  tv2(up_3d, down_3d, eigen_timeslice, nx, &tmp[0], &tmp[0]);
+  tv2( nx, &tmp[0], &tmp[0]);
   //Scale tmp with 128 and px with 256
   scale_array(128, &tmp[0], &tmp[0]);
   scale_array(256, &x[0], &tmp1[0]);
@@ -121,20 +122,20 @@ static void tv(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **
   subtract_arrays(&tmp1[0], &tmp[0], &y[0]);
 
   //Step 2
-  tv2(up_3d, down_3d, eigen_timeslice, nx, &y[0], &tmp[0]);
-  tv2(up_3d, down_3d, eigen_timeslice, nx, &tmp[0], &tmp[0]);
+  tv2( nx, &y[0], &tmp[0]);
+  tv2( nx, &tmp[0], &tmp[0]);
   scale_array(160, &x[0], &tmp1[0]);
   add_arrays(&tmp1[0], &tmp[0], &y[0]);
 
   //Step 3
-  tv2(up_3d, down_3d, eigen_timeslice, nx, &y[0], &tmp[0]);
-  tv2(up_3d, down_3d, eigen_timeslice, nx, &tmp[0], &tmp[0]);
+  tv2( nx, &y[0], &tmp[0]);
+  tv2( nx, &tmp[0], &tmp[0]);
   scale_array(32, &x[0], &tmp1[0]);
   subtract_arrays(&tmp1[0], &tmp[0], &y[0]);
   
   //Step 4
-  tv2(up_3d, down_3d, eigen_timeslice, nx, &y[0], &tmp[0]);
-  tv2(up_3d, down_3d, eigen_timeslice, nx, &tmp[0], &tmp[0]);
+  tv2( nx, &y[0], &tmp[0]);
+  tv2( nx, &tmp[0], &tmp[0]);
   add_arrays(&tmp[0],&x[0],&y[0]);
 
 }
@@ -170,7 +171,7 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y) {
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   //choose tv instead of tv2 to enable chebyshev acceleration
-  tv(up_3d, down_3d, eigen_timeslice, nx,&px[0],&py[0]);
+  tv( nx,&px[0],&py[0]);
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);

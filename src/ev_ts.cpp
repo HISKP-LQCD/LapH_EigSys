@@ -20,7 +20,6 @@
 #include "par_io.h"
 #include "shell_matop.h"
 #include "timeslice.h"
-#include "variables.h"
 #include "recover_spec.h"
 #include "read_write.h"
 //__Global Declarations__
@@ -36,6 +35,7 @@ int main(int argc, char **argv) {
   //Eigen::initParallel();
   //Eigen::setNbThreads(6);
 
+  std::cout << "Values from parameters.txt set" << std::endl; 
   Mat A;              
   EPS eps;             
   EPSType type;
@@ -44,9 +44,11 @@ int main(int argc, char **argv) {
   IO* pars = IO::getInstance();
   pars -> set_values("parameters.txt");
   pars -> print_summary();
+  //Set up navigation
+  Nav* lookup = Nav::getInstance();
   //in and outpaths
   std::string GAUGE_FIELDS = pars -> get_path("conf");
-  //lattice layout from infile 
+  //lattice layout from infile
   int L0 = pars -> get_int("LT");
   int L1 = pars -> get_int("LX");
   int L2 = pars -> get_int("LY");
@@ -66,11 +68,11 @@ int main(int argc, char **argv) {
   int ITER = pars -> get_int("iter");
 
   //lookup tables
-  int up_3d[V3][3],down_3d[V3][3];
+  //int up_3d[V3][3],down_3d[V3][3];
   //Eigen Array
   //Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
   //N: # rows/columns, nev: desired # Eigenvalues, nconv: # converged EVs
-  Tslice* ts = Tslice::getInstance();
+  Tslice* slice = Tslice::getInstance();
   PetscInt nev = NEV;
   PetscInt n;
   PetscInt nconv;
@@ -99,7 +101,7 @@ int main(int argc, char **argv) {
   //  }
   //}
   //Initialize lookup-tables
-  hopping3d(up_3d, down_3d);
+  //hopping3d(up_3d, down_3d);
   //set up output
   //get number of configuration from last argument to main
   int config;
@@ -129,9 +131,9 @@ int main(int argc, char **argv) {
 
     //Write Timeslice in Eigen Array                                                  
     //map_timeslice_to_eigen(eigen_timeslice, timeslice);
-    ts -> map_timeslice_to_eigen(timeslice);
+    slice -> map_timeslice_to_eigen(timeslice);
     //Apply Smearing algorithm to timeslice ts
-    ts -> smearing_hyp(up_3d, down_3d, ALPHA_1, ALPHA_2, ITER);
+    slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
     ierr = MatCreateShell(PETSC_COMM_WORLD,MAT_ENTRIES,MAT_ENTRIES,PETSC_DECIDE,
@@ -258,8 +260,8 @@ int main(int argc, char **argv) {
 
   ierr = SlepcFinalize();
   //delete configuration;
-  for (auto j = 0; j < V3; ++j) delete[] eigen_timeslice[j];
-  delete eigen_timeslice;
+  //for (auto j = 0; j < V3; ++j) delete[] eigen_timeslice[j];
+  //delete eigen_timeslice;
   return 0;
 }
 

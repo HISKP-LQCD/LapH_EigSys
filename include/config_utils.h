@@ -20,18 +20,18 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <petsctime.h>
 
+#include "navigation.h"
 #include "par_io.h"
 #include "read_write.h"
-#include "variables.h"
 
 //navigation through timeslice
 void hopping3d(int iup[][3], int idown[][3]);
 
 //write timeslice of ildg-message to array of eigen-matrices
-void map_timeslice_to_eigen(Eigen::Matrix3cd **eigen, double *timeslice);
+//void map_timeslice_to_eigen(Eigen::Matrix3cd **eigen, double *timeslice);
 
 //Write Laplacian in euclidean and colour space (ts) to PETSc-Matrix Lap 
-PetscErrorCode BuildLaplacian(Mat Lap, Eigen::Matrix3cd **ts, int iup[][3], int idown[][3]);
+PetscErrorCode BuildLaplacian(Mat Lap, Eigen::Matrix3cd **ts);
 //void smearing_stout(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double rho, int iter);
 //void smearing_ape(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double alpha, int iter);
 //void smearing_hyp(const int up_3d[][3], const int down_3d[][3], Eigen::Matrix3cd **eigen_timeslice, double alpha_1, double alpha_2, int iter);

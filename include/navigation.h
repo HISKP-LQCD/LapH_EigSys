@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <cmath>
-#include <boost/multi_array.hpp>
 #include "par_io.h"
 
 #ifndef _NAVIGATION_H_
@@ -14,8 +13,8 @@
 //ind(x,y,z) = z*L2*L1 + y*L1 + x
 //second dimension of lookup tables gives index in x- (0), y- (1) and z- (2)
 //direction.  
-typedef boost::multi_array<int,2> look;
-typedef look::index idx;
+//typedef boost::multi_array<int,2> look;
+typedef int** look;
 class Nav {
 
   private:
@@ -27,7 +26,7 @@ class Nav {
     // corresponding variables are used to construct the lookup tables.
     Nav();
     //copy assignment
-
+    ~Nav();
   protected:
     void init();
 
