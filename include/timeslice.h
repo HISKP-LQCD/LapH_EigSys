@@ -20,7 +20,7 @@ class Tslice {
   //Fill Eigenarray with one timeslice of eigenvalues
   
   //Get SU(3)-Matrices from timeslice and sort them into Eigen Array
-  void map_timeslice_to_eigen( double *timeslice);
+  void map_timeslice_to_eigen( double* timeslice);
   //obtain one entry of gaugefield timeslice
   Eigen::Matrix3cd get_gauge(const int spat, const int dir);
   //Hyp-smear the timeslice

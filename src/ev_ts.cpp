@@ -11,12 +11,14 @@
  * Created on: Aug 26, 2013
  * Author: christopher helmes
  */
+#include <cstdlib>
 #include <string>
 #include <Eigen/Core>
 #include "slepceps.h"
 #include "config_utils.h"
 #include "eigensystem.h"
 #include "io.h"
+#include "navigation.h"
 #include "par_io.h"
 #include "shell_matop.h"
 #include "timeslice.h"
@@ -46,6 +48,7 @@ int main(int argc, char **argv) {
   pars -> print_summary();
   //Set up navigation
   Nav* lookup = Nav::getInstance();
+  lookup -> init();
   //in and outpaths
   std::string GAUGE_FIELDS = pars -> get_path("conf");
   //lattice layout from infile
@@ -60,8 +63,8 @@ int main(int argc, char **argv) {
   int V_4_LIME = pars -> get_int("V4_LIME");
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   //chebyshev parameters
-  int LAM_L = pars -> get_int("lambda_l");
-  int LAM_C = pars -> get_int("lambda_c"); 
+  double LAM_L = pars -> get_float("lambda_l");
+  double LAM_C = pars -> get_float("lambda_c"); 
   //hyp-smearing parameters
   double ALPHA_1 = pars -> get_float("alpha_1");
   double ALPHA_2 = pars -> get_float("alpha_2");
@@ -117,6 +120,7 @@ int main(int argc, char **argv) {
       L0, L1, L2, L3, 0, L0);
   //__Initalize SLEPc__
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
+  std::cout << "initialized Slepc" << std::endl;
   //loop over timeslices of a configuration
   for (int ts = 0; ts < L0; ++ts) {
 
@@ -128,6 +132,8 @@ int main(int argc, char **argv) {
     //evectors = fopen(ts_name,"wb");
     //Time Slice of Configuration
     double* timeslice = configuration + (ts*V_TS);
+    
+    std::cout << "timeslice allocated" << std::endl;
 
     //Write Timeslice in Eigen Array                                                  
     //map_timeslice_to_eigen(eigen_timeslice, timeslice);
@@ -136,9 +142,12 @@ int main(int argc, char **argv) {
     slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
+    std::cout << "Try to create Shell Matrix..." << std::endl;
     ierr = MatCreateShell(PETSC_COMM_WORLD,MAT_ENTRIES,MAT_ENTRIES,PETSC_DECIDE,
         PETSC_DECIDE,&n,&A);
       CHKERRQ(ierr);
+    std::cout << "done" << std::endl;
+    std::cout << "Try to set operations..." << std::endl;
     ierr = MatSetFromOptions(A);
       CHKERRQ(ierr);
     ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatMult_Laplacian2D);
@@ -146,6 +155,7 @@ int main(int argc, char **argv) {
     ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,
         (void(*)())MatMult_Laplacian2D);
       CHKERRQ(ierr);
+    std::cout << "accomplished" << std::endl;
     ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,
         (void(*)())MatGetDiagonal_Laplacian2D);
       CHKERRQ(ierr);

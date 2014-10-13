@@ -8,21 +8,11 @@ static IO* const paras = IO::getInstance();
 //Get one instance of lookuptables already initialized
 Nav* Nav::getInstance() {
   static Nav theInstance;
-  theInstance.init();
   return &theInstance;
 }
 
 //Constructor including right allocation
 Nav::Nav() {
-  //V3 from parameters
-  const int vol = paras -> get_int("V3");
-  iup = new int *[vol];
-  idown = new int *[vol];
-
-  for (int i = 0; i < vol; ++i){
-    iup[i] = new int[3];
-    idown[i] = new int[3];
-  }
 }
 //Destructor freeing all memory
 Nav::~Nav() {
@@ -35,6 +25,15 @@ Nav::~Nav() {
   delete idown;
 }
 void Nav::init() {
+  //V3 from parameters
+  const int vol = paras -> get_int("V3");
+  iup = new int *[vol];
+  idown = new int *[vol];
+
+  for (int i = 0; i < vol; ++i){
+    iup[i] = new int[3];
+    idown[i] = new int[3];
+  }
   //const ints vor 3d volume, assuming L1 = L2;
   const int L1 = paras -> get_int("LX");
   const int L2 = paras -> get_int("LY");

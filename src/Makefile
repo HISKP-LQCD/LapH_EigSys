@@ -69,7 +69,7 @@ LIBPATH = $(LIME_INSTALL)/lib $(PETSC_LIBPATH) $(SLEPC_LIBPATH)
 
 
 # scheduling and optimization options
-CFLAGS = -std=c++0x -DEIGEN_DONT_PARALLELIZE -O2
+CFLAGS = -pedantic -Wall -std=c++0x -g
 
 ############################## do not change ###################################
 

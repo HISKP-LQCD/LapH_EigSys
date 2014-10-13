@@ -29,7 +29,7 @@ Tslice::~Tslice(){
 }
 
 //mapping from gauge config to Eigen 3x3 complex matrix arrays
-void Tslice::map_timeslice_to_eigen( double *timeslice) {
+void Tslice::map_timeslice_to_eigen( double* timeslice) {
   int L1 = pars -> get_int("LX");
   int L2 = pars -> get_int("LY");
   int L3 = pars -> get_int("LZ");
@@ -71,7 +71,7 @@ void Tslice::map_timeslice_to_eigen( double *timeslice) {
       }
     }
   }
-  //std::cout << el_input << " doubles read in from ildg timeslice " << std::endl;
+  std::cout << el_input << " doubles read in from ildg timeslice " << std::endl;
 }
 
 Eigen::Matrix3cd Tslice::get_gauge(const int spat, const int dir) {

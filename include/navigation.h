@@ -28,13 +28,13 @@ class Nav {
     //copy assignment
     ~Nav();
   protected:
-    void init();
 
   public:
     
     //Get index in distance. org stands for the origin, dir for the direction,
     //dist for the distance in lattice units.
     static Nav* getInstance();
+    void init();
     int dist_ind(const int org, const int dir, const int dist);
     int get_up(const int pos, const int dir);
     int get_dn(const int pos, const int dir);
