@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   int V_TS = pars -> get_int("V_TS");
   //calculation parameters from infile
   int NEV = pars -> get_int("NEV");
-  int V_4_LIME = pars -> get_int("V4_LIME");
+  const int V_4_LIME = pars -> get_int("V4_LIME");
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   //chebyshev parameters
   double LAM_L = pars -> get_float("lambda_l");
@@ -76,6 +76,7 @@ int main(int argc, char **argv) {
   //Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
   //N: # rows/columns, nev: desired # Eigenvalues, nconv: # converged EVs
   Tslice* slice = Tslice::getInstance();
+  slice -> Tslice::init();
   PetscInt nev = NEV;
   PetscInt n;
   PetscInt nconv;
@@ -133,7 +134,6 @@ int main(int argc, char **argv) {
     //Time Slice of Configuration
     double* timeslice = configuration + (ts*V_TS);
     
-    std::cout << "timeslice allocated" << std::endl;
 
     //Write Timeslice in Eigen Array                                                  
     //map_timeslice_to_eigen(eigen_timeslice, timeslice);

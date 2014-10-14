@@ -10,15 +10,15 @@
 #include "par_io.h"
 class Tslice {
   private:
-    Tslice ();
+    Tslice (){};
     ~Tslice ();
   //Eigen Array
   Eigen::Matrix3cd **eigen_timeslice;
   public:
 
   static Tslice* getInstance();
-  //Fill Eigenarray with one timeslice of eigenvalues
-  
+  //initialize timeslice with identity matrices
+  void init(); 
   //Get SU(3)-Matrices from timeslice and sort them into Eigen Array
   void map_timeslice_to_eigen( double* timeslice);
   //obtain one entry of gaugefield timeslice
