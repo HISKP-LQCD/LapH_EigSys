@@ -19,7 +19,7 @@ Tslice::~Tslice(){
 void Tslice::init() {
   
   const int V3 = pars -> get_int("V3");
-  Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
+  eigen_timeslice = new Eigen::Matrix3cd *[V3];
   //Allocate Eigen Array to hold timeslice
   for ( int i = 0; i < V3; ++i ) {
     eigen_timeslice[i] = new Eigen::Matrix3cd[3];
@@ -41,13 +41,6 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
   int V3 = pars -> get_int("V3");
 
   int V_TS = pars -> get_int("V_TS");
-  std::cout << "V_TS is " << V_TS << std::endl;
-  std::cout << "V_3 is " << V3 << std::endl;
-  std::cout << "LX is " << L1 << std::endl;
-  std::cout << "LY is " << L2 << std::endl;
-  std::cout << "LZ is " << L3 << std::endl;
-  std::cout << "N_DIR is " << NDIR << std::endl;
-  std::cout << "N_COL is " << NCOL << std::endl;
 
   //read in elements
   int el_input = 0;
@@ -62,12 +55,10 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
               int ind_r = z*V_TS/L3+y*V_TS/(L3*L2)+x*V_TS/(V3)+
                 mu*V_TS/(V3*NDIR)+a*V_TS/(V3*NDIR*NCOL)
                 +b*V_TS/(V3*NDIR*NCOL*NCOL)+0;
-		std::cout << ind_r << std::endl;
               //timeslice index of imaginary part
               int ind_i = z*V_TS/L3+y*V_TS/(L3*L2)+x*V_TS/(V3)+
                 mu*V_TS/(V3*NDIR)+a*V_TS/(V3*NDIR*NCOL)
                 +b*V_TS/(V3*NDIR*NCOL*NCOL)+1;
-		std::cout << ind_i << std::endl;
 		
               std::complex<double> pair(timeslice[ind_r], timeslice[ind_i]);
               //array to be mapped to Eigen Array
@@ -78,10 +69,7 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
           Eigen::Map<Eigen::Matrix3cd> dummy(array);
           //spatial index
           int ind = z*L2*L1+y*L1+x;
-	  std::cout << ind << " " << mu-1 << std::endl;
-	  std::cout << dummy << std::endl;
            this -> eigen_timeslice[ind][mu-1] = dummy;
-		std::cout << this -> eigen_timeslice[ind][mu-1] << std::endl;
         }
       }
     }

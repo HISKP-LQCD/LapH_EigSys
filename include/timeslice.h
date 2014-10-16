@@ -13,7 +13,7 @@ class Tslice {
     Tslice (){};
     ~Tslice ();
   //Eigen Array
-  Eigen::Matrix3cd **eigen_timeslice;
+  Eigen::Matrix3cd** eigen_timeslice;
   public:
 
   static Tslice* getInstance();

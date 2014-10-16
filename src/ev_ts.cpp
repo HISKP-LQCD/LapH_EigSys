@@ -170,7 +170,6 @@ int main(int argc, char **argv) {
     ierr = MatGetVecs(A,NULL,&xi);
       CHKERRQ(ierr);
       std::cout << "successful" << std::endl;  
-    std::cout << "Start solving T_8(B) * x = y" << std::endl;
 
     //--------------------------------------------------------------------------//
     //                 Context creation & Options setting                       //
@@ -203,6 +202,7 @@ int main(int argc, char **argv) {
 
     ierr = PetscTime(&v1);
       CHKERRQ(ierr);
+    std::cout << "Start solving T_8(B) * x = y" << std::endl;
     ierr = EPSSolve(eps);
       CHKERRQ(ierr);
     ierr = PetscTime(&v2);
