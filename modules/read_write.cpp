@@ -108,9 +108,11 @@ delete[] buffer;
 
 void write_eig_sys_bin(const char* prefix, const int config_i, const int t, const int nb_ev, Eigen::MatrixXcd& V) {
   const int V3 = pars -> get_int("V3");
+  std::string path = pars -> get_path("res");
   //set up filename
   char file [200];
-  sprintf(file, "%s.%04d.%03d", prefix, config_i, t);
+  sprintf(file, "%s/%s.%04d.%03d", path.c_str(), prefix, config_i, t);
+  //sprintf(file, "%s.%04d.%03d", prefix, config_i, t);
   std::cout << "Writing to file:" << file << std::endl;
   std::ofstream outfile(file, std::ofstream::binary);
   outfile.write(reinterpret_cast<char*> (V.data()), 2*3*V3*nb_ev*sizeof(double));
@@ -149,10 +151,10 @@ void write_sourceshape_bin(const char* prefix, const int config,
 //Write eigenvalues from std::vector to binary
 void write_eigenvalues_bin( const char* prefix, const int config_i, const int t,
     const int nb_ev, std::vector<double>& ev) {
-
+  std::string path = pars -> get_path("res");
   //Build filename
   char filename[200];
-  sprintf(filename, "%s.%04d.%03d", prefix, config_i, t);
+  sprintf(filename, "%s/%s.%04d.%03d", path.c_str(), prefix, config_i, t);
 
   std::ofstream outfile(filename, std::ofstream::binary);
   if(outfile) {

@@ -13,8 +13,8 @@ static IO* const pars = IO::getInstance();
 double invert_B(const double value_in) {
 
   //Parameters for projection
-  double lambda_l = pars -> get_int("LAM_L");
-  double lambda_c = pars -> get_int("LAM_C");
+  double lambda_l = pars -> get_float("lambda_l");
+  double lambda_c = pars -> get_float("lambda_c");
   return( (lambda_l-lambda_c)*(value_in-1)*0.5 - lambda_c );
 
 }

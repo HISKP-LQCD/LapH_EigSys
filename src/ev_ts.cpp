@@ -52,23 +52,23 @@ int main(int argc, char **argv) {
   //in and outpaths
   std::string GAUGE_FIELDS = pars -> get_path("conf");
   //lattice layout from infile
-  int L0 = pars -> get_int("LT");
-  int L1 = pars -> get_int("LX");
-  int L2 = pars -> get_int("LY");
-  int L3 = pars -> get_int("LZ");
+  const int L0 = pars -> get_int("LT");
+  const int L1 = pars -> get_int("LX");
+  const int L2 = pars -> get_int("LY");
+  const int L3 = pars -> get_int("LZ");
   const int V3 = pars -> get_int("V3");
-  int V_TS = pars -> get_int("V_TS");
+  const int V_TS = pars -> get_int("V_TS");
   //calculation parameters from infile
-  int NEV = pars -> get_int("NEV");
+  const int NEV = pars -> get_int("NEV");
   const int V_4_LIME = pars -> get_int("V4_LIME");
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   //chebyshev parameters
-  double LAM_L = pars -> get_float("lambda_l");
-  double LAM_C = pars -> get_float("lambda_c"); 
+  const double LAM_L = pars -> get_float("lambda_l");
+  const double LAM_C = pars -> get_float("lambda_c"); 
   //hyp-smearing parameters
-  double ALPHA_1 = pars -> get_float("alpha_1");
-  double ALPHA_2 = pars -> get_float("alpha_2");
-  int ITER = pars -> get_int("iter");
+  const double ALPHA_1 = pars -> get_float("alpha_1");
+  const double ALPHA_2 = pars -> get_float("alpha_2");
+  const int ITER = pars -> get_int("iter");
 
   //lookup tables
   //int up_3d[V3][3],down_3d[V3][3];
@@ -139,6 +139,7 @@ int main(int argc, char **argv) {
     //map_timeslice_to_eigen(eigen_timeslice, timeslice);
     slice -> map_timeslice_to_eigen(timeslice);
     //Apply Smearing algorithm to timeslice ts
+    std::cout << "smearing with parameters " << ALPHA_1 << " " << ALPHA_2 << " " << ITER << std::endl;
     slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
@@ -252,8 +253,10 @@ int main(int argc, char **argv) {
     //recover spectrum of eigenvalues from acceleration
     std::vector<double> evals_save;
     recover_spectrum(nconv, evals_accel, evals_save);
+    std::cout << evals_accel.at(nconv -1) << " " << evals_save.at(nconv-1) <<std::endl;
     write_eigenvalues_bin("eigenvalues", config, ts, nev, evals_save);
     write_eigenvalues_bin("phases", config, ts, nev, phase );
+   
     /*
     eigenvalues.write(reinterpret_cast<char*>(&evals_accel[0]), evals_accel.size()*sizeof(double));
     */

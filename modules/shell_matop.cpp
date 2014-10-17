@@ -14,7 +14,6 @@ Eigen::Vector3cd, respectively
 After this the Multiplication of the Laplace takes place. Result is stored
 in yps, which then is written to the array at *y again. */
 static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
-
   const int V3 = pars -> get_int("V3");
   const double LAM_L = pars -> get_float("lambda_l");
   const double LAM_C = pars -> get_float("lambda_c");
@@ -107,7 +106,6 @@ static void subtract_arrays(const PetscScalar *b, const PetscScalar *a, PetscSca
 //Calculating Chebyshev-Polynomial T8 of B acting on x in a 4-Step process
 static void tv( int nx, const PetscScalar *x,PetscScalar *y) {
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
-  std::cout << MAT_ENTRIES << std::endl;
   PetscScalar tmp[MAT_ENTRIES];
   PetscScalar tmp1[MAT_ENTRIES];
 

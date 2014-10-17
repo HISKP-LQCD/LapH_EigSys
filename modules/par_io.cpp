@@ -98,12 +98,17 @@ void IO::set_values(const char* infile) {
 void IO::print_summary() {
   std::cout << "Configuration Summary for the eigensystem calculation:" << std::endl;
   std::cout << "------------------------------------------------------" << std::endl;
-  std::cout << "Lattice size is:                                   " << LT << " x " << LX << "^3" << std::endl;
+  std::cout << "Lattice size is:                                   " << LT << " x " << LX << " x " << LY << " x " << LZ << std::endl;
   std::cout << "Number of eigenvectors is:                         " << NEV << std::endl;
   std::cout << "Hyp-smearing parameters (alpha_1, alpha_2, iter):  " << alpha_1 << ", " << alpha_2 << ", " << iter << std::endl;
   std::cout << "Using Chebyshev parameters:                        Lambda_l = " << LAM_L << " Lambda_c = " << LAM_C << std::endl;
   std::cout << "Configurations are read in from:                   " << config_path << std::endl;
   std::cout << "Results are stored in:                             " << result_path << std::endl;
+  std::cout << "Entries in Matrix:				   " << MAT_ENTRIES << std::endl;
+  std::cout << "number of colours:				   " << NCOL << std::endl;
+  std::cout << "number of directions:				   " << NDIR << std::endl;
+  std::cout << "Volume in gauge matrices:			   " << V3 << std::endl;
+  std::cout << "lime config volume in doubles:			   " << V4_LIME << std::endl;
 }
 
 int IO::get_int(std::string spec) {
