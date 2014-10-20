@@ -138,9 +138,10 @@ int main(int argc, char **argv) {
     //Write Timeslice in Eigen Array                                                  
     //map_timeslice_to_eigen(eigen_timeslice, timeslice);
     slice -> map_timeslice_to_eigen(timeslice);
+    std::cout << slice -> get_gauge(1227,2) << std::endl;
     //Apply Smearing algorithm to timeslice ts
-    std::cout << "smearing with parameters " << ALPHA_1 << " " << ALPHA_2 << " " << ITER << std::endl;
     slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
+    std::cout << slice -> get_gauge(1227,2) << std::endl;
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
     std::cout << "Try to create Shell Matrix..." << std::endl;
@@ -253,7 +254,7 @@ int main(int argc, char **argv) {
     //recover spectrum of eigenvalues from acceleration
     std::vector<double> evals_save;
     recover_spectrum(nconv, evals_accel, evals_save);
-    std::cout << evals_accel.at(nconv -1) << " " << evals_save.at(nconv-1) <<std::endl;
+    std::cout << evals_accel.at(0) << " " << evals_save.at(0) <<std::endl;
     write_eigenvalues_bin("eigenvalues", config, ts, nev, evals_save);
     write_eigenvalues_bin("phases", config, ts, nev, phase );
    

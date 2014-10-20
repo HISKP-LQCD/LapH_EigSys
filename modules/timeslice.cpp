@@ -236,7 +236,7 @@ void Tslice::smearing_ape( double alpha, int iter){
 
 void Tslice::smearing_hyp( double alpha_1, double alpha_2, int iter) {
   
-  int V3 = pars -> get_int("V3");
+  const int V3 = pars -> get_int("V3");
   //temporal timeslice twice the size for decorated links 
   Eigen::Matrix3cd **dec_timeslice = new Eigen::Matrix3cd *[V3];
   for (int vol = 0; vol < V3; ++vol) {
@@ -260,7 +260,7 @@ void Tslice::smearing_hyp( double alpha_1, double alpha_2, int iter) {
         Eigen::Matrix3cd inner_staple = Eigen::Matrix3cd::Zero();
         std::array< Eigen::Matrix3cd, 2 > tmp_staples;
         std::array<int, 2> perpendics = get_dirs( dir );
-        for (int* it_perp_dir = perpendics.begin(); it_perp_dir != perpendics.end(); ++it_perp_dir ) {
+        for (auto it_perp_dir = perpendics.begin(); it_perp_dir != perpendics.end(); ++it_perp_dir ) {
           int perp_dir = *it_perp_dir;
           //up-type smearing_indices
           mu = lookup -> get_up(vol, perp_dir);
@@ -316,7 +316,7 @@ void Tslice::smearing_hyp( double alpha_1, double alpha_2, int iter) {
               int plane = ( (dir+1) ^ (not_dir+1) ) - 1;
               mu = lookup -> get_up(i, not_dir);
               nu = lookup -> get_up(mu, dir);
-              eta = lookup -> get_up(nu, not_dir);
+              eta = lookup -> get_dn(nu, not_dir);
 
               //Staples in positive direction
               //replace directions by appropriate decor 
@@ -345,7 +345,7 @@ void Tslice::smearing_hyp( double alpha_1, double alpha_2, int iter) {
       }
       for ( int i = 0; i < V3; ++i ) {
         for ( int mu = 0; mu < 3; ++mu) {
-          eigen_timeslice[i][mu] = proj_to_su3_imp(eigen_timeslice_ts[i][mu]);
+          this -> eigen_timeslice[i][mu] = proj_to_su3_imp(eigen_timeslice_ts[i][mu]);
           //eigen_timeslice[i][mu] = eigen_timeslice_ts[i][mu];//without SU(3)-projection
         }
       }
