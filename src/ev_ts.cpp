@@ -138,10 +138,8 @@ int main(int argc, char **argv) {
     //Write Timeslice in Eigen Array                                                  
     //map_timeslice_to_eigen(eigen_timeslice, timeslice);
     slice -> map_timeslice_to_eigen(timeslice);
-    std::cout << slice -> get_gauge(1227,2) << std::endl;
     //Apply Smearing algorithm to timeslice ts
     slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
-    std::cout << slice -> get_gauge(1227,2) << std::endl;
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
     std::cout << "Try to create Shell Matrix..." << std::endl;
@@ -265,7 +263,7 @@ int main(int argc, char **argv) {
     trc = ( eigensystem.adjoint() * ( eigensystem ) ).trace();
     std::cout << "V.adj() * V = " << trc << std::endl;
     //Display user information on files
-    printf("%d eigenvectors saved successfully \n", nconv);
+    printf("%d phase fixed eigenvectors saved successfully \n", nconv);
     printf("%d eigenvalues saved successfully \n", nconv);
     //__Clean up__
     ierr = EPSDestroy(&eps);CHKERRQ(ierr);
