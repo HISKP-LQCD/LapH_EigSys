@@ -9,8 +9,8 @@
 
 #include<lime.h>
 #include<complex>
-#include<stdio.h>
-#include<stdlib.h>
+#include<cstdio>
+#include<cstdlib>
 #include<string.h>
 #include "io.h"
 #include "io_utils.h"

@@ -15,6 +15,7 @@
 #include <string>
 #include <Eigen/Core>
 #include "slepceps.h"
+#include "petsctime.h"
 #include "config_utils.h"
 #include "eigensystem.h"
 #include "io.h"

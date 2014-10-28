@@ -8,15 +8,15 @@
 #ifndef SHELL_MATOP_H_
 #define SHELL_MATOP_H_
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <slepceps.h>
 #include <petscblaslapack.h>
 #include <Eigen/Eigen>
-#include <petsctime.h>
+//#include <petsctime.h>
 #include "config_utils.h"
 #include "navigation.h"
 #include "timeslice.h"

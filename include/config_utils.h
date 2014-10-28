@@ -15,10 +15,10 @@
 #include <iomanip>
 #include <iostream>
 #include <array>
-#include <slepceps.h>
+#include <petsc.h>
 #include <Eigen/Eigen>
 #include <unsupported/Eigen/MatrixFunctions>
-#include <petsctime.h>
+//#include <petsctime.h>
 
 #include "navigation.h"
 #include "par_io.h"
