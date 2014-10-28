@@ -14,10 +14,10 @@ LIBPATH     = $(LIMEPATH)/lib
 LIBS        = m lime
 
 ### C and C++ options
-CPPFLAGS    = -std=c++0x -O2 -Wall
+CPPFLAGS    = -std=c++0x -O2 -Wall -pedantic
 
 ### 
-MAIN    = ev_ts
+MAIN    = ev_ts_part
 GENERAL = config_utils eigensystem io io_utils navigation par_io read_write recover_spec shell_matop timeslice
 MODULES = $(GENERAL)
 
