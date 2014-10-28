@@ -106,9 +106,11 @@ static void subtract_arrays(const PetscScalar *b, const PetscScalar *a, PetscSca
 //Calculating Chebyshev-Polynomial T8 of B acting on x in a 4-Step process
 static void tv( int nx, const PetscScalar *x,PetscScalar *y) {
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
-  PetscScalar tmp[MAT_ENTRIES];
-  PetscScalar tmp1[MAT_ENTRIES];
+  //PetscScalar tmp[MAT_ENTRIES];
+  //PetscScalar tmp1[MAT_ENTRIES];
 
+  std::vector<PetscScalar> tmp(MAT_ENTRIES);
+  std::vector<PetscScalar> tmp1(MAT_ENTRIES);
   //Step 1 
   //storing B*x in tmp
   tv2( nx, &x[0], &tmp[0]);

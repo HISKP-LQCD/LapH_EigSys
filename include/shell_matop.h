@@ -13,6 +13,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <slepceps.h>
 #include <petscblaslapack.h>
 #include <Eigen/Eigen>
