@@ -1,4 +1,4 @@
-SLapH_EIgSys_serial
+LapH_EigSys
 ===================
 
 Serial version of the eigensystem calculation in the stochastic Laplacian Heaviside Smearing
