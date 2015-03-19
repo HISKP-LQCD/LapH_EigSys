@@ -13,6 +13,7 @@
 //#include "sourceshape.h"
 #include "par_io.h"
 #include "structs.h"
+#include "timeslice.h"
 #include "variables.h"
 /***************************Input from files**********************************/
 
@@ -55,5 +56,5 @@ void write_gauge_matrices(const char* prefix, Eigen::Matrix3cd* G);
 void write_sourceshape_bin();
 */
 //write gauge link matrices of one timeslice to binary file
-void write_link_matrices_ts(const char* prefix, Eigen::Matrix3cd** links);
+void write_link_matrices_ts(const char* prefix);
 #endif // _READ_WRITE_H__

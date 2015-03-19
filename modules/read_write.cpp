@@ -3,6 +3,7 @@
 #include "read_write.h"
 
 static IO* const pars = IO::getInstance();
+static Tslice* const eigen_timeslice = Tslice::getInstance();
 /********************************Input from files*****************************/
 
 //Reads in Eigenvectors from one Timeslice in binary format to V
@@ -175,13 +176,14 @@ void write_gauge_matrices(const char* prefix, Eigen::Matrix3cd* G) {
   outfile.close();
 }
 //write gauge link matrices of one timeslice to binary file
-void write_link_matrices_ts(const char* prefix, Eigen::Matrix3cd** links) {
+void write_link_matrices_ts(const char* prefix) {
 
   int V3 = pars -> get_int("V3");
   std::ofstream outfile (prefix, std::ofstream::binary);
   for (int vol = 0; vol < V3; ++vol) {
     for (int mu = 0; mu < 3; ++mu) {
-      outfile.write(reinterpret_cast<const char*>(&(links[vol][mu])), 2*9*sizeof(double));
+      Eigen::Matrix3cd tmp = eigen_timeslice -> get_gauge(vol,mu); 
+      outfile.write(reinterpret_cast<const char*>(&tmp), 2*9*sizeof(double));
     }//end dir
   }//end vol
   outfile.close();

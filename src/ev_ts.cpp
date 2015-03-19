@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
   std::cout << "initialized Slepc" << std::endl;
   //loop over timeslices of a configuration
-  for (int ts = 0; ts < L0; ++ts) {
+  for (int ts = 3; ts < 4; ++ts) {
 
     //--------------------------------------------------------------------------//
     //                              Data input                                  //
@@ -139,8 +139,17 @@ int main(int argc, char **argv) {
     //Write Timeslice in Eigen Array                                                  
     //map_timeslice_to_eigen(eigen_timeslice, timeslice);
     slice -> map_timeslice_to_eigen(timeslice);
+    std::cout << slice -> get_gauge(4,2) << std::endl;
+    //Gauge_matrices
+    //Eigen::Matrix3cd* gauge = new Eigen::Matrix3cd[V3];
+    //build_gauge_array(gauge);
+    //Gaugetrafo of timeslice
+    //slice -> transform_ts(gauge);
+    //save transformed timeslice
+    //write_link_matrices_ts("ts_gauged_000.1300");
     //Apply Smearing algorithm to timeslice ts
     slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
+    std::cout << slice -> get_gauge(4,2) << std::endl;
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
     std::cout << "Try to create Shell Matrix..." << std::endl;
@@ -269,9 +278,11 @@ int main(int argc, char **argv) {
     //__Clean up__
     ierr = EPSDestroy(&eps);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);
+ // delete[] gauge;
   }//end loop over timeslices
 
   ierr = SlepcFinalize();
+  //delete gauge
   //delete configuration;
   //for (auto j = 0; j < V3; ++j) delete[] eigen_timeslice[j];
   //delete eigen_timeslice;

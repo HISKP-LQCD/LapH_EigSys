@@ -80,6 +80,11 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
 Eigen::Matrix3cd Tslice::get_gauge(const int spat, const int dir) {
   return eigen_timeslice[spat][dir];
 }
+
+
+void Tslice::set_gauge(const int spat, const int dir, Eigen::Matrix3cd el) {
+  eigen_timeslice[spat][dir] = el;
+}
 //smearing and associated stuff
 static Eigen::Matrix3cd proj_to_su3_imp(Eigen::Matrix3cd& in){
   //avoid possible aliasing issues:
@@ -360,4 +365,31 @@ void Tslice::smearing_hyp( double alpha_1, double alpha_2, int iter) {
   delete eigen_timeslice_ts;
   //printf("Timeslice successfully HYP-smeared with (a_1, a_2, iterations): %f, %f, %d \n",
       //alpha_1, alpha_2, iter);
+}
+
+//Gauge-transform config and store transformed in gauge_config
+void Tslice::transform_ts( Eigen::Matrix3cd* Omega) {
+
+  int V3 = pars -> get_int("V3");
+  /*
+  //SU(3)-gauge field of same size as config
+  Eigen::Matrix3cd* Omega = new Eigen::Matrix3cd [V3];
+  build_gauge_array(Omega);
+  write_gauge_matrices("ts_trafo_log.bin", Omega);
+  */
+  for ( int i = 0; i < V3; ++i ) {
+    for ( int mu = 0; mu < 3; ++mu ) {
+      int j = lookup -> get_up(i,mu);
+      this -> set_gauge(i,mu, (Omega[i].adjoint())* ( (this -> get_gauge(i,mu) ) * Omega[j]) );
+    //std::cout << "gauge config: \n" << gauge_config[i][mu] << "\n\n";
+     // std::cout << "config: \n" << config[i][mu] << "\n\n\n";
+    }
+  }
+//  delete[] Omega;
+  /*for ( auto i = 0; i < V3; ++i ) {
+    for ( auto mu = 0; mu < 3; ++mu ) {
+      config[i][mu] = gauge_config[i][mu];
+    }
+  }*/
+
 }
