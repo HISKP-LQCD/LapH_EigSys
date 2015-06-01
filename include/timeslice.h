@@ -26,6 +26,8 @@ class Tslice {
     void set_gauge(const int spat, const int dir, Eigen::Matrix3cd el);
     Eigen::Matrix3cd get_gauge(const int spat, const int dir);
     //Hyp-smear the timeslice
+    //This is a 2 step process. a_2 is the inner parameter used for weighting
+    //a_1 describes the outer weighting parameter. it is the number of iterations
     void smearing_hyp(const double a_1, const double a_2, const int it);
     void smearing_stout(double rho, int iter);
     void smearing_ape( double alpha, int iter);
