@@ -34,7 +34,7 @@ configurations are at hand. Normal execution is done by invoking
 
 where =CONF= should be a valid configuration number. The according
 parameters.txt is read from the execution directory. The program output contains
-small sanity checks as the \tr{V^dag * V} that should equal the number of eigenvectors.
+small sanity checks as the $\tr(V^dag * V}$ that should equal the number of eigenvectors.
 Eigenvectors, eigenvalues and phases are saved in binary format where the eigenvectors
 are phasefixed. 
 
