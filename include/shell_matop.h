@@ -14,8 +14,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <slepceps.h>
-#include <petscblaslapack.h>
+//#include <slepceps.h>
+//#include <petscblaslapack.h>
 #include <Eigen/Eigen>
 //#include <petsctime.h>
 #include "config_utils.h"

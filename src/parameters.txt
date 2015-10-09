@@ -3,7 +3,7 @@
 #
 # Absolute Paths to configurations and storage of eigensystems
 config_path = /hiskp2/gauges/test4x4x4x4
-result_path = ./
+result_path = scratch
 #
 # Lattice Extent
 LT = 4
@@ -12,12 +12,12 @@ LT = 4
 LX = 4
 #
 # Number of eigenvectors to calculate
-NEV = 1
+NEV = 12
 #
 # Hyp-Smearing parameters
 alpha_1 = 0.62 
-alpha_2 = 0.62
-iter = 2
+alpha_2 = 0.58
+iter = 3
 #
 # Chebyshev acceleration of eigensystem calculation
 LAM_L = 11.8

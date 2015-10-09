@@ -14,7 +14,8 @@
 #include <cstdlib>
 #include <string>
 #include <Eigen/Core>
-#include "slepceps.h"
+#include <mpi.h>
+#include <slepceps.h>
 #include "petsctime.h"
 #include "config_utils.h"
 #include "eigensystem.h"
@@ -37,6 +38,9 @@ int main(int argc, char **argv) {
   //--------------------------------------------------------------------------//
   //Eigen::initParallel();
   //Eigen::setNbThreads(6);
+  //__Initialize MPI__
+  int mpistat = 0;
+  MPI::Init();
 
   std::cout << "Values from parameters.txt set" << std::endl; 
   Mat A;              
@@ -109,8 +113,7 @@ int main(int argc, char **argv) {
   //hopping3d(up_3d, down_3d);
   //set up output
   //get number of configuration from last argument to main
-  int config;
-  config = atoi( argv[ (argc-1) ] );
+  int config = atoi( argv[ (argc-1) ] );
   --argc;
   char conf_name [200];
   sprintf(conf_name, "%s/conf.%04d", GAUGE_FIELDS.c_str(), config );
@@ -120,11 +123,12 @@ int main(int argc, char **argv) {
   double* configuration = new double[V_4_LIME];
   ierr = read_lime_gauge_field_doubleprec_timeslices(configuration, conf_name,
       L0, L1, L2, L3, 0, L0);
-  //__Initalize SLEPc__
+  //__Initialize SLEPc__
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
   std::cout << "initialized Slepc" << std::endl;
   //loop over timeslices of a configuration
-  for (int ts = 3; ts < 4; ++ts) {
+  //for (int ts = 0; ts < L0; ++ts) {
+    int ts = MPI::COMM_WORLD.Get_rank();
 
     //--------------------------------------------------------------------------//
     //                              Data input                                  //
@@ -153,7 +157,7 @@ int main(int argc, char **argv) {
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
     std::cout << "Try to create Shell Matrix..." << std::endl;
-    ierr = MatCreateShell(PETSC_COMM_WORLD,MAT_ENTRIES,MAT_ENTRIES,PETSC_DECIDE,
+    ierr = MatCreateShell(PETSC_COMM_SELF,MAT_ENTRIES,MAT_ENTRIES,PETSC_DECIDE,
         PETSC_DECIDE,&n,&A);
       CHKERRQ(ierr);
     std::cout << "done" << std::endl;
@@ -186,7 +190,7 @@ int main(int argc, char **argv) {
     //--------------------------------------------------------------------------//
 
     //Create eigensolver context
-    ierr = EPSCreate(PETSC_COMM_WORLD, &eps);
+    ierr = EPSCreate(PETSC_COMM_SELF, &eps);
       CHKERRQ(ierr);
 
     //Associate A with eps
@@ -229,9 +233,9 @@ int main(int argc, char **argv) {
     ierr = EPSGetConverged(eps, &nconv);
     CHKERRQ(ierr);
     //__Retrieve solution__
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Number of converged eigenvalues: %D\n",nconv);
+    ierr = PetscPrintf(PETSC_COMM_SELF,"Number of converged eigenvalues: %D\n",nconv);
     CHKERRQ(ierr);
-    ierr=PetscPrintf(PETSC_COMM_WORLD, "Convergence reason of solver: %D\n",reason);
+    ierr=PetscPrintf(PETSC_COMM_SELF, "Convergence reason of solver: %D\n",reason);
     CHKERRQ(ierr);
 
     nconv = nev;
@@ -279,9 +283,10 @@ int main(int argc, char **argv) {
     ierr = EPSDestroy(&eps);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);
  // delete[] gauge;
-  }//end loop over timeslices
+  //}//end loop over timeslices
 
   ierr = SlepcFinalize();
+  MPI::Finalize();
   //delete gauge
   //delete configuration;
   //for (auto j = 0; j < V3; ++j) delete[] eigen_timeslice[j];
