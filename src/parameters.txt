@@ -2,17 +2,17 @@
 # convenient way. If no values are given default values are set.
 #
 # Absolute Paths to configurations and storage of eigensystems
-config_path = /hiskp2/gauges/test4x4x4x4
-result_path = ./
+config_path = /hiskp2/gauges/unit24x24x24x48
+result_path = ./scratch_serial
 #
 # Lattice Extent
-LT = 4
+LT = 48
 # usually the lattices are equally extending in all spatial directions.
 # Therefore one spatial extent is enough
-LX = 4
+LX = 24
 #
 # Number of eigenvectors to calculate
-NEV = 1
+NEV = 120
 #
 # Hyp-Smearing parameters
 alpha_1 = 0.62 

@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
   std::cout << "initialized Slepc" << std::endl;
   //loop over timeslices of a configuration
-  for (int ts = 3; ts < 4; ++ts) {
+  for (int ts = 0; ts < 2; ++ts) {
 
     //--------------------------------------------------------------------------//
     //                              Data input                                  //
