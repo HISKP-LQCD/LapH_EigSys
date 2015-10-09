@@ -12,8 +12,7 @@ Dependencies: - c-lime by USQCD (http://usqcd-software.github.io/c-lime/)
 Preparations:
 -------------
 A PETSc example configure script can be found in install/conf_scripts. For the
-package to work complex scalars, lapack and blas are needed. MPI did not work so
-far and should be disabled the C language should be C++ and the g++ compiler and
+package to work complex scalars, lapack and blas are needed. The C language should be C++ and the g++ compiler and
 linker should be of version later than 4.6.
 
 Compiling:
