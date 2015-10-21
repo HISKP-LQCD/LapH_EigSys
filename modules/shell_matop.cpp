@@ -103,43 +103,74 @@ static void subtract_arrays(const PetscScalar *b, const PetscScalar *a, PetscSca
   }
 }
 
-//Calculating Chebyshev-Polynomial T8 of B acting on x in a 4-Step process
-static void tv( int nx, const PetscScalar *x,PetscScalar *y) {
+static void tv_iter(int nx, const PetscScalar *x, PetscScalar *y){
+  // deg: degree of polynomials
+  // nx: some context variable from Petsc interface
+  // x: vector with which matrix A is multiplied
+  // y = A*x
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
-  //PetscScalar tmp[MAT_ENTRIES];
-  //PetscScalar tmp1[MAT_ENTRIES];
-
-  std::vector<PetscScalar> tmp(MAT_ENTRIES);
-  std::vector<PetscScalar> tmp1(MAT_ENTRIES);
-  //Step 1 
-  //storing B*x in tmp
-  tv2( nx, &x[0], &tmp[0]);
-  //Calculating B(Bx);
-  tv2( nx, &tmp[0], &tmp[0]);
-  //Scale tmp with 128 and px with 256
-  scale_array(128, &tmp[0], &tmp[0]);
-  scale_array(256, &x[0], &tmp1[0]);
-  //subtract tmp1 from tmp yielding y
-  subtract_arrays(&tmp1[0], &tmp[0], &y[0]);
-
-  //Step 2
-  tv2( nx, &y[0], &tmp[0]);
-  tv2( nx, &tmp[0], &tmp[0]);
-  scale_array(160, &x[0], &tmp1[0]);
-  add_arrays(&tmp1[0], &tmp[0], &y[0]);
-
-  //Step 3
-  tv2( nx, &y[0], &tmp[0]);
-  tv2( nx, &tmp[0], &tmp[0]);
-  scale_array(32, &x[0], &tmp1[0]);
-  subtract_arrays(&tmp1[0], &tmp[0], &y[0]);
-  
-  //Step 4
-  tv2( nx, &y[0], &tmp[0]);
-  tv2( nx, &tmp[0], &tmp[0]);
-  add_arrays(&tmp[0],&x[0],&y[0]);
-
+  //hard coded atm, move to parameters later
+  const int DEG = 8;
+  std::vector<PetscScalar> T_old(MAT_ENTRIES)
+  std::vector<PetscScalar> T_cur(MAT_ENTRIES)
+  std::vector<PetscScalar> T_new(MAT_ENTRIES)
+  // initialize chebyshev polynomials
+  tv2( nx, &x[0], &y[0]); 
+  for (int me = 0; me < MAT_ENTRIES; me++){
+    T_old.at(me) = 1.;
+  }
+  // if deg is 1 or less return initialised values
+  if deg <=1
+  // else iteratively calculate chebyshev polynomials up to deg
+  // T_n+1(B) = 2*B(T_n(B))-T_n-1(B)
+  else
+  for (int n = 2; n <= deg; n++){
+    // store B(T_cur(B(x))) in tmp1
+    tv2(nx,&y[0],&tmp1[0]);
+    scale_array(2,&tmp1[0],&tmp1[0]);
+    subtract_arrays(&tmp1[0],&T_old[0],&T_new[0]);
+    T_old = y;
+    y = T_new;
+  }
 }
+
+//Calculating Chebyshev-Polynomial T8 of B acting on x in a 4-Step process
+//static void tv( int nx, const PetscScalar *x,PetscScalar *y) {
+//  const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
+//  //PetscScalar tmp[MAT_ENTRIES];
+//  //PetscScalar tmp1[MAT_ENTRIES];
+//
+//  std::vector<PetscScalar> tmp(MAT_ENTRIES);
+//  std::vector<PetscScalar> tmp1(MAT_ENTRIES);
+//  //Step 1 
+//  //storing B*x in tmp
+//  tv2( nx, &x[0], &tmp[0]);
+//  //Calculating B(Bx);
+//  tv2( nx, &tmp[0], &tmp[0]);
+//  //Scale tmp with 128 and px with 256
+//  scale_array(128, &tmp[0], &tmp[0]);
+//  scale_array(256, &x[0], &tmp1[0]);
+//  //subtract tmp1 from tmp yielding y
+//  subtract_arrays(&tmp1[0], &tmp[0], &y[0]);
+//
+//  //Step 2
+//  tv2( nx, &y[0], &tmp[0]);
+//  tv2( nx, &tmp[0], &tmp[0]);
+//  scale_array(160, &x[0], &tmp1[0]);
+//  add_arrays(&tmp1[0], &tmp[0], &y[0]);
+//
+//  //Step 3
+//  tv2( nx, &y[0], &tmp[0]);
+//  tv2( nx, &tmp[0], &tmp[0]);
+//  scale_array(32, &x[0], &tmp1[0]);
+//  subtract_arrays(&tmp1[0], &tmp[0], &y[0]);
+//  
+//  //Step 4
+//  tv2( nx, &y[0], &tmp[0]);
+//  tv2( nx, &tmp[0], &tmp[0]);
+//  add_arrays(&tmp[0],&x[0],&y[0]);
+//
+//}
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMult_Laplacian2D"
@@ -172,7 +203,7 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y) {
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   //choose tv instead of tv2 to enable chebyshev acceleration
-  tv( nx,&px[0],&py[0]);
+  tv_iter( nx,&px[0],&py[0]);
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
