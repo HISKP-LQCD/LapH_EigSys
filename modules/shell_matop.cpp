@@ -103,6 +103,14 @@ static void subtract_arrays(const PetscScalar *b, const PetscScalar *a, PetscSca
   }
 }
 
+//equals y to input
+static void equal_arrays(const PetscScalar *a, PetscScalar *y){
+  const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
+  for (int k = 0; k < MAT_ENTRIES; ++k) {
+    y[k] = a[k];
+  }
+}
+
 static void tv_iter(int nx, const PetscScalar *x, PetscScalar *y){
   // deg: degree of polynomials
   // nx: some context variable from Petsc interface
@@ -111,26 +119,28 @@ static void tv_iter(int nx, const PetscScalar *x, PetscScalar *y){
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   //hard coded atm, move to parameters later
   const int DEG = 8;
-  std::vector<PetscScalar> T_old(MAT_ENTRIES)
-  std::vector<PetscScalar> T_cur(MAT_ENTRIES)
-  std::vector<PetscScalar> T_new(MAT_ENTRIES)
+  std::vector<PetscScalar> Told(MAT_ENTRIES); 
+  std::vector<PetscScalar> Tcur(MAT_ENTRIES); 
+  std::vector<PetscScalar> Tnew(MAT_ENTRIES);
+  std::vector<PetscScalar> tmp(MAT_ENTRIES);
   // initialize chebyshev polynomials
-  tv2( nx, &x[0], &y[0]); 
-  for (int me = 0; me < MAT_ENTRIES; me++){
-    T_old.at(me) = 1.;
-  }
+  tv2( nx, &x[0], &Tcur[0]);
+  equal_arrays(&x[0], &Told[0]);
   // if deg is 1 or less return initialised values
-  if deg <=1
+  if (DEG >=1){
   // else iteratively calculate chebyshev polynomials up to deg
-  // T_n+1(B) = 2*B(T_n(B))-T_n-1(B)
-  else
-  for (int n = 2; n <= deg; n++){
-    // store B(T_cur(B(x))) in tmp1
-    tv2(nx,&y[0],&tmp1[0]);
-    scale_array(2,&tmp1[0],&tmp1[0]);
-    subtract_arrays(&tmp1[0],&T_old[0],&T_new[0]);
-    T_old = y;
-    y = T_new;
+  // T_n(B) = 2*B(T_{n-1}(B))-T_{n-2}(B)
+    for (int n = 2; n <= DEG; n++){
+      // store B(Tcur(Bx)) in tmp1
+      tv2(nx, &Tcur[0], &tmp[0]);
+      // scale tmp1
+      scale_array(2., &tmp[0], &tmp[0]);
+      //calculate new polynomial
+      subtract_arrays(&Told[0], &tmp[0], &y[0]);
+      // overwrite new variables
+      equal_arrays(&Tcur[0], &Told[0]);
+      equal_arrays(&y[0], &Tcur[0]);
+    }
   }
 }
 

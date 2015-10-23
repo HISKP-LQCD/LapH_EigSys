@@ -19,6 +19,8 @@ double invert_B(const double value_in) {
 
 }
 
+//TODO: Implement variable recovery
+
 //Invert 8th Chebyshev-Polynom of first kind
 double invert_T8(const double value_in) {
 

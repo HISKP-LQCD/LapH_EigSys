@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <string>
 #include <Eigen/Core>
-#include "slepceps.h"
+#include <slepceps.h>
 #include "petsctime.h"
 #include "config_utils.h"
 #include "eigensystem.h"
@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
   std::cout << "initialized Slepc" << std::endl;
   //loop over timeslices of a configuration
-  for (int ts = 0; ts < 2; ++ts) {
+  for (int ts = 0; ts < 1; ++ts) {
 
     //--------------------------------------------------------------------------//
     //                              Data input                                  //

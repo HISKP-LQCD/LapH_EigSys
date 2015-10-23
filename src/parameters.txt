@@ -2,7 +2,7 @@
 # convenient way. If no values are given default values are set.
 #
 # Absolute Paths to configurations and storage of eigensystems
-config_path = /hiskp2/gauges/unit24x24x24x48
+config_path = /hiskp2/gauges/A40.24_L24_T48_beta190_mul0040_musig150_mudel190_kappa1632700
 result_path = ./scratch_serial
 #
 # Lattice Extent
@@ -16,9 +16,9 @@ NEV = 120
 #
 # Hyp-Smearing parameters
 alpha_1 = 0.62 
-alpha_2 = 0.62
-iter = 2
+alpha_2 = 0.58
+iter = 3
 #
 # Chebyshev acceleration of eigensystem calculation
 LAM_L = 11.8
-LAM_C = 0.5
+LAM_C = 0.6
