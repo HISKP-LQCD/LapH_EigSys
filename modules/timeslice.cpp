@@ -76,7 +76,7 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
       }
     }
   }
-  std::cout << el_input << " doubles read in from ildg timeslice " << std::endl;
+  //std::cout << el_input << " doubles read in from ildg timeslice " << std::endl;
 }
 
 Eigen::Matrix3cd Tslice::get_gauge(const int spat, const int dir) {

@@ -41,8 +41,10 @@ int main(int argc, char **argv) {
   //__Initialize MPI__
   int mpistat = 0;
   MPI::Init();
+  int size = MPI::COMM_WORLD.Get_size();
+  int me = MPI::COMM_WORLD.Get_rank();
 
-  std::cout << "Values from parameters.txt set" << std::endl; 
+  //std::cout << "Values from parameters.txt set" << std::endl; 
   Mat A;              
   EPS eps;             
   EPSType type;
@@ -50,7 +52,9 @@ int main(int argc, char **argv) {
   //Handling infile
   IO* pars = IO::getInstance();
   pars -> set_values("parameters.txt");
-  pars -> print_summary();
+  if(me == 0) {
+    pars -> print_summary();
+  }
   //Set up navigation
   Nav* lookup = Nav::getInstance();
   lookup -> init();
@@ -75,8 +79,6 @@ int main(int argc, char **argv) {
   const double ALPHA_2 = pars -> get_float("alpha_2");
   const int ITER = pars -> get_int("iter");
   // set the chunks to calculate
-  int size = MPI::COMM_WORLD.Get_size();
-  int me = MPI::COMM_WORLD.Get_rank();
   int tstart = 0;
   int tend = 0;
   int todo = 0;
@@ -100,9 +102,9 @@ int main(int argc, char **argv) {
       tstarts[i] = tends[i-1] + 1;
       tends[i] = tstarts[i] + todos[i] - 1;
     }
-    for(int i = 0; i < size; ++i) {
-      std::cout << tstarts[i] << " " << tends[i] << std::endl;
-    }
+    //for(int i = 0; i < size; ++i) {
+    //  std::cout << tstarts[i] << " " << tends[i] << std::endl;
+    //}
   }
   // scatter to all processes
   MPI::COMM_WORLD.Scatter(tstarts, 1, MPI_INT, &tstart, 1, MPI_INT, 0);
@@ -140,8 +142,9 @@ int main(int argc, char **argv) {
   --argc;
   char conf_name [200];
   sprintf(conf_name, "%s/conf.%04d", GAUGE_FIELDS.c_str(), config );
-  printf("%s\n", conf_name);
-  printf("Using chebyshev parameters Lambda_c: %f and Lambda_l: %f\n", LAM_C, LAM_L);
+  if(me == 0)
+    printf("calculating config %d\n", config);
+  //printf("Using chebyshev parameters Lambda_c: %f and Lambda_l: %f\n", LAM_C, LAM_L);
   //Initialize memory for configuration
   double* configuration = new double[todo*V_TS];
   //double* configuration = new double[V_4_LIME];
@@ -149,10 +152,10 @@ int main(int argc, char **argv) {
       L0, L1, L2, L3, tstart, tend);
   //__Initialize SLEPc__
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
-  std::cout << "initialized Slepc" << std::endl;
+  //std::cout << "initialized Slepc" << std::endl;
   //loop over timeslices of a configuration
   for (int ts = 0; ts < todo; ++ts) {
-    std::cout << me << ": calculating time slice " << ts << std::endl;
+    std::cout << me << ": calculating time slice " << ts+tstart << std::endl;
     //--------------------------------------------------------------------------//
     //                              Data input                                  //
     //--------------------------------------------------------------------------//
@@ -248,9 +251,9 @@ int main(int argc, char **argv) {
     ierr = EPSGetConverged(eps, &nconv);
     CHKERRQ(ierr);
     //__Retrieve solution__
-    ierr = PetscPrintf(PETSC_COMM_SELF,"Number of converged eigenvalues: %D\n",nconv);
+    ierr = PetscPrintf(PETSC_COMM_SELF,"%D: Number of converged eigenvalues: %D\n",me,nconv);
     CHKERRQ(ierr);
-    ierr=PetscPrintf(PETSC_COMM_SELF, "Convergence reason of solver: %D\n",reason);
+    ierr=PetscPrintf(PETSC_COMM_SELF, "%D: Convergence reason of solver: %D\n",me,reason);
     CHKERRQ(ierr);
 
     nconv = nev;
@@ -274,17 +277,17 @@ int main(int argc, char **argv) {
       CHKERRQ(ierr);
     }
     fix_phase(eigensystem, eigensystem_fix, phase);
-    write_eig_sys_bin("eigenvectors", config, ts, nev, eigensystem_fix); 
+    write_eig_sys_bin("eigenvectors", config, tstart+ts, nev, eigensystem_fix); 
     //recover spectrum of eigenvalues from acceleration
     std::vector<double> evals_save;
     recover_spectrum(nconv, evals_accel, evals_save);
-    std::cout << evals_accel.at(0) << " " << evals_save.at(0) <<std::endl;
-    write_eigenvalues_bin("eigenvalues", config, ts, nev, evals_save);
-    write_eigenvalues_bin("phases", config, ts, nev, phase );
+    //std::cout << me << " " << evals_accel.at(0) << " " << evals_save.at(0) <<std::endl;
+    write_eigenvalues_bin("eigenvalues", config, tstart+ts, nev, evals_save);
+    write_eigenvalues_bin("phases", config, tstart+ts, nev, phase);
    
     //check trace of eigensystem
     trc = ( eigensystem.adjoint() * ( eigensystem ) ).trace();
-    std::cout << "V.adj() * V = " << trc << std::endl;
+    std::cout << me << " V.adj() * V = " << trc << std::endl;
     //Display user information on files
     printf("%d: %d phase fixed eigenvectors saved successfully \n", me, nconv);
     printf("%d: %d eigenvalues saved successfully \n", me, nconv);
