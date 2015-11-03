@@ -74,11 +74,44 @@ int main(int argc, char **argv) {
   const double ALPHA_1 = pars -> get_float("alpha_1");
   const double ALPHA_2 = pars -> get_float("alpha_2");
   const int ITER = pars -> get_int("iter");
+  // set the chunks to calculate
+  int size = MPI::COMM_WORLD.Get_size();
+  int me = MPI::COMM_WORLD.Get_rank();
+  int tstart = 0;
+  int tend = 0;
+  int todo = 0;
+  int *tstarts = new int[size];
+  int *tends = new int[size];
+  int *todos = new int[size];
+  if (me == 0) {
+    // calculate chunks minimal chunk size
+    int tmp = L0/size;
+    // fill array
+    for(int i = 0; i < size; ++i)
+      todos[i] = tmp;
+    // increase the first chunks until all
+    // time slices are distributed
+    for(int i = 0; i < L0%size; ++i)
+      ++todos[i];
+    // fill tstarts and tend;
+    tstarts[0] = 0;
+    tends[0] = todos[0] - 1;
+    for(int i = 1; i < size; ++i) {
+      tstarts[i] = tends[i-1] + 1;
+      tends[i] = tstarts[i] + todos[i] - 1;
+    }
+    for(int i = 0; i < size; ++i) {
+      std::cout << tstarts[i] << " " << tends[i] << std::endl;
+    }
+  }
+  // scatter to all processes
+  MPI::COMM_WORLD.Scatter(tstarts, 1, MPI_INT, &tstart, 1, MPI_INT, 0);
+  MPI::COMM_WORLD.Scatter(tends, 1, MPI_INT, &tend, 1, MPI_INT, 0);
+  MPI::COMM_WORLD.Scatter(todos, 1, MPI_INT, &todo, 1, MPI_INT, 0);
+
+  printf("%d: size: %d, tstart %d, tend %d, todo %d\n", me, size, tstart, tend, todo);
 
   //lookup tables
-  //int up_3d[V3][3],down_3d[V3][3];
-  //Eigen Array
-  //Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
   //N: # rows/columns, nev: desired # Eigenvalues, nconv: # converged EVs
   Tslice* slice = Tslice::getInstance();
   slice -> Tslice::init();
@@ -102,16 +135,6 @@ int main(int argc, char **argv) {
   Eigen::MatrixXcd eigensystem_fix(MAT_ENTRIES, nev);
   std::complex<double> trc;
 
-  //Allocate Eigen Array to hold timeslice
-  //for ( auto i = 0; i < V3; ++i ) {
-  //  eigen_timeslice[i] = new Eigen::Matrix3cd[3];
-  //  for (auto dir = 0; dir < 3; ++dir) {
-  //    eigen_timeslice[i][dir] = Eigen::Matrix3cd::Identity();
-  //  }
-  //}
-  //Initialize lookup-tables
-  //hopping3d(up_3d, down_3d);
-  //set up output
   //get number of configuration from last argument to main
   int config = atoi( argv[ (argc-1) ] );
   --argc;
@@ -120,48 +143,40 @@ int main(int argc, char **argv) {
   printf("%s\n", conf_name);
   printf("Using chebyshev parameters Lambda_c: %f and Lambda_l: %f\n", LAM_C, LAM_L);
   //Initialize memory for configuration
-  double* configuration = new double[V_4_LIME];
+  double* configuration = new double[todo*V_TS];
+  //double* configuration = new double[V_4_LIME];
   ierr = read_lime_gauge_field_doubleprec_timeslices(configuration, conf_name,
-      L0, L1, L2, L3, 0, L0);
+      L0, L1, L2, L3, tstart, tend);
   //__Initialize SLEPc__
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
   std::cout << "initialized Slepc" << std::endl;
   //loop over timeslices of a configuration
-  //for (int ts = 0; ts < L0; ++ts) {
-    int ts = MPI::COMM_WORLD.Get_rank();
-
+  for (int ts = 0; ts < todo; ++ts) {
+    std::cout << me << ": calculating time slice " << ts << std::endl;
     //--------------------------------------------------------------------------//
     //                              Data input                                  //
     //--------------------------------------------------------------------------//
 
-    //for every timeslice open new file binary write
-    //evectors = fopen(ts_name,"wb");
     //Time Slice of Configuration
     double* timeslice = configuration + (ts*V_TS);
-    
 
     //Write Timeslice in Eigen Array                                                  
-    //map_timeslice_to_eigen(eigen_timeslice, timeslice);
     slice -> map_timeslice_to_eigen(timeslice);
-    std::cout << slice -> get_gauge(4,2) << std::endl;
     //Gauge_matrices
-    //Eigen::Matrix3cd* gauge = new Eigen::Matrix3cd[V3];
-    //build_gauge_array(gauge);
     //Gaugetrafo of timeslice
     //slice -> transform_ts(gauge);
     //save transformed timeslice
     //write_link_matrices_ts("ts_gauged_000.1300");
     //Apply Smearing algorithm to timeslice ts
     slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
-    std::cout << slice -> get_gauge(4,2) << std::endl;
     //__Define Action of Laplacian in Color and spatial space on vector
     n = V3;//Tell Shell matrix about size of vectors
-    std::cout << "Try to create Shell Matrix..." << std::endl;
+    std::cout << me << ": Try to create Shell Matrix..." << std::endl;
     ierr = MatCreateShell(PETSC_COMM_SELF,MAT_ENTRIES,MAT_ENTRIES,PETSC_DECIDE,
         PETSC_DECIDE,&n,&A);
       CHKERRQ(ierr);
-    std::cout << "done" << std::endl;
-    std::cout << "Try to set operations..." << std::endl;
+    std::cout << me << ": done" << std::endl;
+    std::cout << me << ": Try to set operations..." << std::endl;
     ierr = MatSetFromOptions(A);
       CHKERRQ(ierr);
     ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatMult_Laplacian2D);
@@ -169,11 +184,11 @@ int main(int argc, char **argv) {
     ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,
         (void(*)())MatMult_Laplacian2D);
       CHKERRQ(ierr);
-    std::cout << "accomplished" << std::endl;
+    std::cout << me << ": accomplished" << std::endl;
     ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,
         (void(*)())MatGetDiagonal_Laplacian2D);
       CHKERRQ(ierr);
-    std::cout << "Matrix creation: ";
+    std::cout << me << ": Matrix creation..." << std::endl;
       CHKERRQ(ierr);
     ierr = MatSetOption(A, MAT_HERMITIAN, PETSC_TRUE);
       CHKERRQ(ierr);
@@ -183,7 +198,7 @@ int main(int argc, char **argv) {
       CHKERRQ(ierr);
     ierr = MatGetVecs(A,NULL,&xi);
       CHKERRQ(ierr);
-      std::cout << "successful" << std::endl;  
+      std::cout << me << ": successful" << std::endl;  
 
     //--------------------------------------------------------------------------//
     //                 Context creation & Options setting                       //
@@ -216,7 +231,7 @@ int main(int argc, char **argv) {
 
     ierr = PetscTime(&v1);
       CHKERRQ(ierr);
-    std::cout << "Start solving T_8(B) * x = y" << std::endl;
+    std::cout << me << ": Start solving T_8(B) * x = y" << std::endl;
     ierr = EPSSolve(eps);
       CHKERRQ(ierr);
     ierr = PetscTime(&v2);
@@ -251,8 +266,6 @@ int main(int argc, char **argv) {
       ierr = VecGetArray(xr, &ptr_evec);
       CHKERRQ(ierr);
     
-      //save nconv eigenvectors and eigenvalues to one file each
-      //fwrite(ptr_evec, sizeof(ptr_evec[0]), MAT_ENTRIES, evectors);
       //write each eigenvector to eigensystem for check
       eigensystem.col(i) = Eigen::Map<Eigen::VectorXcd, 0 >(ptr_evec, MAT_ENTRIES);
       //fwrite(ptr_eval ,  sizeof(double) , 1, evalues );
@@ -260,7 +273,6 @@ int main(int argc, char **argv) {
       ierr = VecRestoreArray(xr, &ptr_evec);
       CHKERRQ(ierr);
     }
-    //fix phase to 0 in first entry of each eigenvector
     fix_phase(eigensystem, eigensystem_fix, phase);
     write_eig_sys_bin("eigenvectors", config, ts, nev, eigensystem_fix); 
     //recover spectrum of eigenvalues from acceleration
@@ -270,27 +282,19 @@ int main(int argc, char **argv) {
     write_eigenvalues_bin("eigenvalues", config, ts, nev, evals_save);
     write_eigenvalues_bin("phases", config, ts, nev, phase );
    
-    /*
-    eigenvalues.write(reinterpret_cast<char*>(&evals_accel[0]), evals_accel.size()*sizeof(double));
-    */
     //check trace of eigensystem
     trc = ( eigensystem.adjoint() * ( eigensystem ) ).trace();
     std::cout << "V.adj() * V = " << trc << std::endl;
     //Display user information on files
-    printf("%d phase fixed eigenvectors saved successfully \n", nconv);
-    printf("%d eigenvalues saved successfully \n", nconv);
+    printf("%d: %d phase fixed eigenvectors saved successfully \n", me, nconv);
+    printf("%d: %d eigenvalues saved successfully \n", me, nconv);
     //__Clean up__
     ierr = EPSDestroy(&eps);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);
- // delete[] gauge;
-  //}//end loop over timeslices
+  } //end loop over timeslices
 
   ierr = SlepcFinalize();
   MPI::Finalize();
-  //delete gauge
-  //delete configuration;
-  //for (auto j = 0; j < V3; ++j) delete[] eigen_timeslice[j];
-  //delete eigen_timeslice;
   return 0;
 }
 
