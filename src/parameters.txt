@@ -22,3 +22,4 @@ iter = 3
 # Chebyshev acceleration of eigensystem calculation
 LAM_L = 11.8
 LAM_C = 0.6
+DEG = 16

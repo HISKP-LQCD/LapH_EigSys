@@ -21,7 +21,7 @@ LIBPATH     = $(LIMEPATH)/lib
 LIBS        = m lime 
 
 ### C and C++ options
-CPPFLAGS    = -std=c++0x -O2 -Wall
+CPPFLAGS    = -std=c++0x -O2 -Wall -fopenmp
 
 ### 
 MAIN    = ev_ts

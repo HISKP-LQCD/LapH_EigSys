@@ -41,6 +41,8 @@ static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
   //register const double a = 0;
 	//Laplace times vector in terms of Eigen::3cd
   //for ( int k = 0; k < V3; ++k ) yps.at(k) = Eigen::Vector3cd::Zero();
+  #pragma omp parallel 
+  {
   for ( int k = 0; k < V3; ++k) {
         /*if (k == 0) {
           yps.at(k) = -(U[k][0]*iks.at( up_3d[k][0] ) + (U[ down_3d[k][0] ][0].adjoint())
@@ -69,6 +71,7 @@ static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
 //                    - 6.0 * (iks.at(k))) + a * (iks.at(k));
 //          //std::cout << U[k][0] << " " << down_3d[k][0] << " " << up_3d[k][1] << " " << down_3d[k][1] << " " << up_3d[k][2] << " " << down_3d[k][2] << std::endl;
         //}
+  }
   }
   //copy vectors back to Petsc-arrays
   int k = 0;
@@ -118,7 +121,8 @@ static void tv_iter(int nx, const PetscScalar *x, PetscScalar *y){
   // y = A*x
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   //hard coded atm, move to parameters later
-  const int DEG = 8;
+  const int DEG = pars -> get_int("DEG");
+  //const int DEG = 8;
   std::vector<PetscScalar> Told(MAT_ENTRIES); 
   std::vector<PetscScalar> Tcur(MAT_ENTRIES); 
   std::vector<PetscScalar> Tnew(MAT_ENTRIES);

@@ -14,6 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <omp.h>
 #include <slepceps.h>
 #include <petscblaslapack.h>
 #include <Eigen/Eigen>

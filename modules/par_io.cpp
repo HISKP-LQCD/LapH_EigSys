@@ -50,6 +50,9 @@ void IO::set_values(const char* infile) {
         if (keyword == "iter") {
           integers["iter"] = atoi(value.c_str());
         }
+        if (keyword == "DEG") {
+          integers["DEG"] = atoi(value.c_str());
+        }
 
         //floating point valued map variables
         if (keyword == "alpha_1") {
@@ -92,6 +95,7 @@ void IO::set_values(const char* infile) {
 
   LAM_L = floatings["LAM_L"];
   LAM_C = floatings["LAM_C"];
+  DEG = integers["DEG"];
 
 }
 
@@ -102,6 +106,7 @@ void IO::print_summary() {
   std::cout << "Number of eigenvectors is:                         " << NEV << std::endl;
   std::cout << "Hyp-smearing parameters (alpha_1, alpha_2, iter):  " << alpha_1 << ", " << alpha_2 << ", " << iter << std::endl;
   std::cout << "Using Chebyshev parameters:                        Lambda_l = " << LAM_L << " Lambda_c = " << LAM_C << std::endl;
+  std::cout << "Degree of Chebyshev polynomial:                    " << DEG << std::endl;
   std::cout << "Configurations are read in from:                   " << config_path << std::endl;
   std::cout << "Results are stored in:                             " << result_path << std::endl;
   std::cout << "Entries in Matrix:				   " << MAT_ENTRIES << std::endl;
@@ -149,6 +154,9 @@ int IO::get_int(std::string spec) {
   }
   if (spec == "MAT_ENTRIES") {
     return MAT_ENTRIES;
+  }
+  if (spec == "DEG") {
+    return DEG;
   }
   else return -1;
 
