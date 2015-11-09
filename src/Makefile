@@ -1,36 +1,37 @@
 ### PETSc and SLEPc variables
-#PETSC_DIR  = /hiskp2/helmes/programm_libs/petsc-3.6.2
-#PETSC_ARCH = arch-linux-complex-scalar-noMPI 
-#SLEPC_DIR  = /hiskp2/helmes/programm_libs/slepc-3.6.1
+#PETSC_DIR  = $(HOME)/code/petsc
+#PETSC_ARCH = arch-linux2-cxx-opt
+#SLEPC_DIR  = $(HOME)/code/slepc
 
-include /hiskp2/helmes/programm_libs/slepc-3.6.1/lib/slepc/conf/slepc_common
+PETSC_INC = $(PETSC_DIR)/$(PETSC_ARCH)/include $(PETSC_DIR)/include $(PETSC_DIR)/include/mpiuni
+SLEPC_INC = $(SLEPC_DIR)/$(PETSC_ARCH)/include $(SLEPC_DIR)/include
+
+PETSC_LIB = $(PETSC_DIR)/$(PETSC_ARCH)/lib
+SLEPC_LIB = $(SLEPC_DIR)/$(PETSC_ARCH)/lib
+
 ### paths to different included libraries
 MDIR        = ../modules
 VPATH       = .:$(MDIR)
-LIMEPATH    = $(WORK)/helmes/programm_libs/lime-1.3.2
-EIGENPATH   = $(WORK)/helmes/programm_libs/eigen-3.2.0
+LIMEPATH    = $(HOME)/code/lime-1.3.2
+EIGENPATH   = $(HOME)/code/eigen
 
-INCPATH     = ../include $(EIGENPATH) $(LIMEPATH)/include /usr/local/include\
-							$(PETSC_DIR)/include $(PETSC_DIR)/$(PETSC_ARCH)/include
-							#$(PETSC_DIR)/include/mpiuni 
-							#$(SLEPC_DIR)/include $(SLEPC_DIR)/arch-linux-complex-scalar-noMPI/include\
-							#$(SLEPC_DIR)/$(PETSC_ARCH)/include
-							#$(PETSC_DIR)/include 
-               
-LIBPATH     = $(LIMEPATH)/lib 
-LIBS        = m lime 
+INCPATH     = ../include $(EIGENPATH) $(LIMEPATH)/include $(PETSC_INC) $(SLEPC_INC)
+LIBPATH     = $(LIMEPATH)/lib $(PETSC_LIB) $(SLEPC_LIB)
+LIBS        = m lime petsc slepc mpicxx
 
 ### C and C++ options
-CPPFLAGS    = -std=c++0x -O2 -Wall
+CPPFLAGS    = -std=c++0x -Ofast -Wall -pedantic -openmp
 
 ### 
 MAIN    = ev_ts
-GENERAL = config_utils eigensystem io io_utils navigation par_io read_write recover_spec shell_matop timeslice
+GENERAL = timeslice config_utils eigensystem io io_utils navigation par_io read_write recover_spec shell_matop
 MODULES = $(GENERAL)
 
 ### programs to use
-CC	   = mpicc.openmpi 
-CPP	   = g++
+#CC	   = gcc
+#CPP	   = g++
+CC	   = mpiicc
+CPP	   = mpiicpc
 CLINKER    = $(CC)
 
 
@@ -39,7 +40,8 @@ all: rmexeq mkdep mkexeq
 
 .PHONY: all
 
-
+#include $(PETSC_DIR)/conf/petscvariables
+#include $(SLEPC_DIR)/conf/slepc_common
 
 PGMS = $(MAIN) $(MODULES)
 
@@ -47,16 +49,16 @@ PGMS = $(MAIN) $(MODULES)
 
 # rule to make dependencies
 $(addsuffix .d, $(PGMS)): %.d: %.cpp Makefile
-	@ $(CC) -ansi $< -MM $(CPPFLAGS) $(addprefix -I, $(INCPATH)) -o $@
+	@ $(CC) -ansi $< -MM $(CPPFLAGS) $(addprefix -I, $(INCPATH)) $(CC_INCLUDES) -o $@
 
 # rule to compile source programs
 $(addsuffix .o, $(PGMS)): %.o: %.cpp Makefile
-	$(CC) $< -c $(CPPFLAGS) $(addprefix -I, $(INCPATH)) ${SLEPC_INCLUDE}
- 
+	$(CC) $< -c $(CPPFLAGS) $(addprefix -I, $(INCPATH)) $(CC_INCLUDES)
+
 # rule to link main programs
 $(MAIN): %: %.o $(addsuffix .o, $(MODULES)) Makefile
 	$(CLINKER) $(CPPFLAGS) $< $(addsuffix .o, $(MODULES)) \
-	$(addprefix -L, $(LIBPATH)) $(addprefix -l,$(LIBS)) $(addprefix -L, ${SLEPC_LIB_DIR}) ${SLEPC_EPS_LIB} -o $@
+	$(addprefix -L, $(LIBPATH)) $(addprefix -l,$(LIBS)) -o $@
 
 # produce executables
 mkexeq: $(MAIN)
@@ -72,4 +74,8 @@ mkdep: $(addsuffix .d,$(PGMS))
 
 # clean directory
 # clean is already predefined in the includes above
+
+myclean:
+	@ -rm -rf *.d *.o *.alog *.clog *.slog $(MAIN)
+.PHONY: myclean
 
