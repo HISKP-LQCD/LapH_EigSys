@@ -20,7 +20,7 @@ LIBPATH     = $(LIMEPATH)/lib $(PETSC_LIB) $(SLEPC_LIB)
 LIBS        = m lime petsc slepc mpicxx
 
 ### C and C++ options
-CPPFLAGS    = -std=c++0x -Ofast -Wall -pedantic -openmp
+CPPFLAGS    = -std=c++0x -Ofast -Wall -pedantic
 
 ### 
 MAIN    = ev_ts

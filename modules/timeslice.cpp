@@ -27,7 +27,7 @@ void Tslice::init() {
       eigen_timeslice[i][dir] = Eigen::Matrix3cd::Identity();
     }
   }
-  std::cout << eigen_timeslice[V3-1][2] << std::endl;
+  //std::cout << eigen_timeslice[V3-1][2] << std::endl;
 }
 
 //mapping from gauge config to Eigen 3x3 complex matrix arrays
@@ -49,16 +49,18 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
       for (int x = 0; x < L1; ++x) {
         for (int mu = 1; mu < 4; ++mu) {//direction loop
           std::complex< double > array[9];
+          int ind_r, ind_i;
           for (int a = 0; a < 3; ++a) {//colour loops
             for (int b = 0; b < 3; ++b) {
               //timeslice index of real part
-              int ind_r = z*V_TS/L3+y*V_TS/(L3*L2)+x*V_TS/(V3)+
+              ind_r = z*V_TS/L3+y*V_TS/(L3*L2)+x*V_TS/(V3)+
                 mu*V_TS/(V3*NDIR)+a*V_TS/(V3*NDIR*NCOL)
                 +b*V_TS/(V3*NDIR*NCOL*NCOL)+0;
               //timeslice index of imaginary part
-              int ind_i = z*V_TS/L3+y*V_TS/(L3*L2)+x*V_TS/(V3)+
-                mu*V_TS/(V3*NDIR)+a*V_TS/(V3*NDIR*NCOL)
-                +b*V_TS/(V3*NDIR*NCOL*NCOL)+1;
+              //int ind_i = z*V_TS/L3+y*V_TS/(L3*L2)+x*V_TS/(V3)+
+              //  mu*V_TS/(V3*NDIR)+a*V_TS/(V3*NDIR*NCOL)
+              //  +b*V_TS/(V3*NDIR*NCOL*NCOL)+1;
+              ind_i = ind_r + 1;
 		
               std::complex<double> pair(timeslice[ind_r], timeslice[ind_i]);
               //array to be mapped to Eigen Array
@@ -69,12 +71,12 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
           Eigen::Map<Eigen::Matrix3cd> dummy(array);
           //spatial index
           int ind = z*L2*L1+y*L1+x;
-           this -> eigen_timeslice[ind][mu-1] = dummy;
+          this -> eigen_timeslice[ind][mu-1] = dummy;
         }
       }
     }
   }
-  std::cout << el_input << " doubles read in from ildg timeslice " << std::endl;
+  //std::cout << el_input << " doubles read in from ildg timeslice " << std::endl;
 }
 
 Eigen::Matrix3cd Tslice::get_gauge(const int spat, const int dir) {
