@@ -9,7 +9,7 @@ result_path = scratch
 LT = 48
 # usually the lattices are equally extending in all spatial directions.
 # Therefore one spatial extent is enough
-LX = 20
+LX = 24
 #
 # Number of eigenvectors to calculate
 NEV = 120
@@ -21,4 +21,5 @@ iter = 3
 #
 # Chebyshev acceleration of eigensystem calculation
 LAM_L = 11.8
-LAM_C = 0.5
+LAM_C = 0.6
+DEG = 16
