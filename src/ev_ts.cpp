@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <string>
 #include <Eigen/Core>
+#include <mpi.h>
 #include <slepceps.h>
 #include "petsctime.h"
 #include "config_utils.h"
@@ -37,7 +38,9 @@ int main(int argc, char **argv) {
   //--------------------------------------------------------------------------//
   //Eigen::initParallel();
   //Eigen::setNbThreads(6);
-
+  //Initialize MPI
+  int mpistat = 0;
+  MPI::Init();
   std::cout << "Values from parameters.txt set" << std::endl; 
   Mat A;              
   EPS eps;             
@@ -124,7 +127,9 @@ int main(int argc, char **argv) {
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
   std::cout << "initialized Slepc" << std::endl;
   //loop over timeslices of a configuration
-  for (int ts = 0; ts < 1; ++ts) {
+  //for (int ts = 0; ts < 1; ++ts) {
+    int ts = MPI::COMM_WORLD.Get_rank();
+
 
     //--------------------------------------------------------------------------//
     //                              Data input                                  //
@@ -175,9 +180,9 @@ int main(int argc, char **argv) {
       CHKERRQ(ierr);
     ierr = MatSetUp(A);
       CHKERRQ(ierr);
-    ierr = MatGetVecs(A,NULL,&xr);
+    ierr = MatCreateVecs(A,NULL,&xr);
       CHKERRQ(ierr);
-    ierr = MatGetVecs(A,NULL,&xi);
+    ierr = MatCreateVecs(A,NULL,&xi);
       CHKERRQ(ierr);
       std::cout << "successful" << std::endl;  
 
@@ -279,9 +284,10 @@ int main(int argc, char **argv) {
     ierr = EPSDestroy(&eps);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);
  // delete[] gauge;
-  }//end loop over timeslices
+  //}//end loop over timeslices
 
   ierr = SlepcFinalize();
+  MPI::Finalize();
   //delete gauge
   //delete configuration;
   //for (auto j = 0; j < V3; ++j) delete[] eigen_timeslice[j];

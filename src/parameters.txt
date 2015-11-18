@@ -3,7 +3,7 @@
 #
 # Absolute Paths to configurations and storage of eigensystems
 config_path = /hiskp2/gauges/A40.24_L24_T48_beta190_mul0040_musig150_mudel190_kappa1632700
-result_path = ./scratch_serial
+result_path = ./scratch
 #
 # Lattice Extent
 LT = 48
