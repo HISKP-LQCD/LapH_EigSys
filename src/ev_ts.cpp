@@ -145,7 +145,6 @@ int main(int argc, char **argv) {
   PetscPrintf(PETSC_COMM_SELF, "%d: init time %f s\n", rank, elapsed_time);
   //loop over timeslices of a configuration
   for(int ts = 0; ts < todo; ++ts) {
-    //if (ts > 0) continue;
     ierr = PetscTime(&v1); CHKERRQ(ierr);
     PetscPrintf(PETSC_COMM_SELF, "%d: Initializing time slice %d...\n", rank, ts+tstart);
     //--------------------------------------------------------------------------//
