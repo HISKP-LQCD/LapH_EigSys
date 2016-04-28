@@ -1,7 +1,7 @@
 ### PETSc and SLEPc variables
-#PETSC_DIR  = $(HOME)/code/petsc
-#PETSC_ARCH = arch-linux2-cxx-opt
-#SLEPC_DIR  = $(HOME)/code/slepc
+PETSC_DIR  = /homec/hbn28/hbn282/code/petsc
+PETSC_ARCH = arch-linux2-c-opt
+SLEPC_DIR  = /homec/hbn28/hbn282/code/slepc
 
 PETSC_INC = $(PETSC_DIR)/$(PETSC_ARCH)/include $(PETSC_DIR)/include $(PETSC_DIR)/include/mpiuni
 SLEPC_INC = $(SLEPC_DIR)/$(PETSC_ARCH)/include $(SLEPC_DIR)/include
@@ -12,8 +12,8 @@ SLEPC_LIB = $(SLEPC_DIR)/$(PETSC_ARCH)/lib
 ### paths to different included libraries
 MDIR        = ../modules
 VPATH       = .:$(MDIR)
-LIMEPATH    = $(HOME)/code/lime-1.3.2
-EIGENPATH   = $(HOME)/code/eigen
+LIMEPATH    = /homec/hbn28/hbn282/code/lime-1.3.2
+EIGENPATH   = /homec/hbn28/hbn282/code/eigen
 
 INCPATH     = ../include $(EIGENPATH) $(LIMEPATH)/include $(PETSC_INC) $(SLEPC_INC)
 LIBPATH     = $(LIMEPATH)/lib $(PETSC_LIB) $(SLEPC_LIB)
