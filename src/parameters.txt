@@ -23,3 +23,8 @@ iter = 3
 LAM_L = 11.8
 LAM_C = 0.6
 DEG = 16
+#
+# Testing section
+# Absolute paths to eigenvectors
+ev_path_1 = /work/hbn28/hbn284/eigensystems/production/A30.32
+ev_path_2 = /work/hbn28/hbn284/eigensystems/A30.32
