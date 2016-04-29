@@ -134,6 +134,7 @@ int main(int argc, char **argv) {
   Eigen::MatrixXcd eigensystem(MAT_ENTRIES, nev);
   Eigen::MatrixXcd eigensystem_fix(MAT_ENTRIES, nev);
   Eigen::MatrixXcd vdv(nev,nev);
+  std::complex<double> sum_single;
   std::complex<double> sum;
   std::complex<double> trc;
 
@@ -286,10 +287,13 @@ int main(int argc, char **argv) {
   
     //check trace and sum of eigensystem
     vdv = eigensystem.adjoint() * ( eigensystem );
+    sum_single = eigensystem.sum();
     sum = vdv.sum(); 
     trc = vdv.trace();
     std::cout << rank << ": tr(V.adj() * V) = " << trc << std::endl;
     std::cout << rank << ": sum(V.adj() * V) = " << sum << std::endl;
+    std::cout << rank << ": sum(V) = " << sum_single << std::endl;
+    
     //Display user information on files
     printf("%d: %d phase fixed eigenvectors saved successfully \n", rank, nconv);
     printf("%d: %d eigenvalues saved successfully \n", rank, nconv);

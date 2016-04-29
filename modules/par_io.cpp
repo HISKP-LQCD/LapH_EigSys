@@ -36,6 +36,12 @@ void IO::set_values(const char* infile) {
         if (keyword == "result_path") {
           names["result_path"] = value;
         }
+        if (keyword == "ev_path_1") {
+          names["ev_path_1"] = value;
+        }
+        if (keyword == "ev_path_2") {
+          names["ev_path_2"] = value;
+        }
 
         //Integer valued map variables
         if (keyword == "LT" ) {
@@ -74,6 +80,8 @@ void IO::set_values(const char* infile) {
   //set the values
   config_path = names["config_path"];
   result_path = names["result_path"];
+  ev_path_1 = names["ev_path_1"];
+  ev_path_2 = names["ev_path_2"];
 
   LT = integers["LT"];
   LX = integers["LX"];
@@ -188,6 +196,14 @@ std::string IO::get_path(std::string spec) {
 
   if (spec == "res") {
     return result_path;
+  }
+
+  if (spec == "ev_1") {
+    return ev_path_1;
+  }
+
+  if (spec == "ev_2") {
+    return ev_path_2;
   }
 
   else return "not found";

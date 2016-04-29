@@ -23,7 +23,8 @@ LIBS        = m lime petsc slepc mpicxx
 CPPFLAGS    = -std=c++0x -Ofast -Wall -pedantic
 
 ### 
-MAIN    = ev_ts
+#MAIN    = ev_ts
+MAIN    = test_eigensystems
 GENERAL = timeslice config_utils eigensystem io io_utils navigation par_io read_write recover_spec shell_matop
 MODULES = $(GENERAL)
 
