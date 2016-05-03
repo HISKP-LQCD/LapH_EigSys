@@ -23,15 +23,15 @@ LIBS        = m lime petsc slepc mpicxx
 CPPFLAGS    = -std=c++0x -Ofast -Wall -pedantic -openmp
 
 ### 
-MAIN    = ev_ts
+MAIN    = test_eigensystems
 GENERAL = timeslice config_utils eigensystem io io_utils navigation par_io read_write recover_spec shell_matop
 MODULES = $(GENERAL)
 
 ### programs to use
-#CC	   = gcc
-#CPP	   = g++
-CC	   = mpiicc
-CPP	   = mpiicpc
+CC	   = g++
+CPP	   = gcc
+#CC	   = mpic++
+#CPP	   = mpic++
 CLINKER    = $(CC)
 
 
