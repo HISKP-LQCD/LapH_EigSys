@@ -16,6 +16,7 @@ class IO {
     //Absolute paths to configurations and destination of the eigensystems
     std::string config_path;
     std::string result_path;
+    std::string input_path;
 
     //controlling the extent of the 4 dimensional configuration
     //LT = temporal, LX = nx, and so on...

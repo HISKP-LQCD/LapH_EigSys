@@ -20,7 +20,7 @@ LIBS        = m lime
 CPPFLAGS    = -std=c++0x -O2 -Wall
 
 ### 
-MAIN    = ev_ts
+MAIN    = test_io_checks
 GENERAL = config_utils eigensystem io io_utils navigation par_io read_write recover_spec shell_matop timeslice
 MODULES = $(GENERAL)
 

@@ -4,25 +4,58 @@
 
 static IO* const pars = IO::getInstance();
 static Tslice* const eigen_timeslice = Tslice::getInstance();
+
+/******************************** Helper functions ****************************/
+// check if all eigenvectors are read at the end of the file. Programm exits if
+// not
+static void eof_check(const int t, const int nev, const int nb_ev, const bool file_end){
+  if (file_end){
+    std::cout << "Timeslice: " << t << ": " << nev << " eigenvectors read from file" << std::endl;
+    if (nev != nb_ev){
+      std::cout << "Error: Wrong number of eigenvectors read, exiting" << std::endl;
+      exit(1);
+    }
+  }
+}
+
+static bool check_trace(const Eigen::MatrixXcd& V, const int nb_ev){
+  bool read_state = true;
+  Eigen::MatrixXcd VdV(nb_ev,nb_ev);
+  VdV = V.adjoint() * V;
+  double eps = 10e-10;
+  std::cout << VdV.trace().real() << std::endl;
+  if ( fabs( VdV.trace().real() - nb_ev ) > eps)
+    read_state = false;
+  return read_state; 
+}
+
 /********************************Input from files*****************************/
 
 //Reads in Eigenvectors from one Timeslice in binary format to V
 void read_evectors_bin_ts(const char* prefix, const int config_i, const int t,
     const int nb_ev, Eigen::MatrixXcd& V) {
   int V3 = pars -> get_int("V3");
+  //bool thorough = pars -> get_int("strict");
+  bool thorough = true; 
   const int dim_row = 3 * V3;
+  std::string path = pars -> get_path("input");
   //buffer for read in
   std::complex<double>* eigen_vec = new std::complex<double>[dim_row];
   //setting up file
   char filename[200];
-  sprintf(filename, "%s.%04d.%03d", prefix, config_i, t);
+  sprintf(filename, "%s/%s.%04d.%03d", path.c_str(), prefix, config_i, t);
   std::cout << "Reading file: " << filename << std::endl;
   std::ifstream infile(filename, std::ifstream::binary);
   for (int nev = 0; nev < nb_ev; ++nev) {
     infile.read( reinterpret_cast<char*> (eigen_vec), 2*dim_row*sizeof(double));
     V.col(nev) = Eigen::Map<Eigen::VectorXcd, 0 >(eigen_vec, dim_row);
-    //    std::cout << eigen_vec[5] << std::endl;
+    eof_check(t,nev,nb_ev,infile.eof());
   }
+  if(check_trace(V, nb_ev) != true){
+    std::cout << "Timeslice: " << t << ": Eigenvectors damaged, exiting" << std::endl;
+    exit(0);
+  }
+
   //clean up
   delete[] eigen_vec;
   infile.close();
@@ -114,9 +147,21 @@ void write_eig_sys_bin(const char* prefix, const int config_i, const int t, cons
   char file [200];
   sprintf(file, "%s/%s.%04d.%03d", path.c_str(), prefix, config_i, t);
   //sprintf(file, "%s.%04d.%03d", prefix, config_i, t);
+  if(check_trace(V, nb_ev) != true){
+    std::cout << "Timeslice: " << t << ": Eigenvectors damaged, abort writing" << std::endl;
+    exit(1);
+  }
   std::cout << "Writing to file:" << file << std::endl;
   std::ofstream outfile(file, std::ofstream::binary);
-  outfile.write(reinterpret_cast<char*> (V.data()), 2*3*V3*nb_ev*sizeof(double));
+  int begin = outfile.tellp();
+  int eigsys_bytes =2*3*V3*nb_ev*sizeof(double); 
+  outfile.write(reinterpret_cast<char*> (V.data()), eigsys_bytes);
+  int end = outfile.tellp();
+  if ( (end - begin)/eigsys_bytes != 1 ){
+    std::cout << "Timeslice:  " << t << " Error: write incomplete, exiting" << std::endl;
+    exit(1);
+  } 
+  std::cout << end - begin << " bytes written" << std::endl;
   outfile.close();
 
 }

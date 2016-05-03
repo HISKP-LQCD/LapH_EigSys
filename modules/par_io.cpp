@@ -36,6 +36,9 @@ void IO::set_values(const char* infile) {
         if (keyword == "result_path") {
           names["result_path"] = value;
         }
+        if (keyword == "in_path") {
+          names["in_path"] = value;
+        }
 
         //Integer valued map variables
         if (keyword == "LT" ) {
@@ -71,11 +74,12 @@ void IO::set_values(const char* infile) {
   //set the values
   config_path = names["config_path"];
   result_path = names["result_path"];
+  input_path = names["in_path"];
 
   LT = integers["LT"];
   LX = integers["LX"];
-  LY=LX;
-  LZ=LX;
+  LY = LX;
+  LZ = LX;
   
   NEV = integers["NEV"];
   NCOL = 3;
@@ -92,6 +96,7 @@ void IO::set_values(const char* infile) {
 
   LAM_L = floatings["LAM_L"];
   LAM_C = floatings["LAM_C"];
+  std::cout << "set values" << std::endl;
 
 }
 
@@ -180,6 +185,10 @@ std::string IO::get_path(std::string spec) {
 
   if (spec == "res") {
     return result_path;
+  }
+
+  if (spec == "input") {
+    return input_path;
   }
 
   else return "not found";
