@@ -23,8 +23,13 @@ static bool check_trace(const Eigen::MatrixXcd& V, const int nb_ev){
   Eigen::MatrixXcd VdV(nb_ev,nb_ev);
   VdV = V.adjoint() * V;
   double eps = 10e-10;
-  std::cout << VdV.trace().real() << std::endl;
-  if ( fabs( VdV.trace().real() - nb_ev ) > eps)
+  std::complex<double> trace (0.,0.), sum (0.,0.);
+  trace = VdV.trace();
+  sum = VdV.sum();
+  std::cout << trace.real() << std::endl;
+  if ( fabs( trace.real() - nb_ev ) > eps ||
+       fabs(trace.imag() > eps
+  )
     read_state = false;
   return read_state; 
 }
