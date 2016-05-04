@@ -23,13 +23,14 @@ static bool check_trace(const Eigen::MatrixXcd& V, const int nb_ev){
   Eigen::MatrixXcd VdV(nb_ev,nb_ev);
   VdV = V.adjoint() * V;
   double eps = 10e-10;
-  std::complex<double> trace (0.,0.), sum (0.,0.);
+  std::complex<double> trace (0.,0.), sum(0.,0.);
   trace = VdV.trace();
   sum = VdV.sum();
   std::cout << trace.real() << std::endl;
-  if ( fabs( trace.real() - nb_ev ) > eps ||
-       fabs(trace.imag() > eps
-  )
+  if ( fabs( trace.real()) - nb_ev > eps ||
+       fabs(trace.imag()) > eps ||
+       fabs(sum.real()) - nb_ev > eps ||
+       fabs(sum.imag()) > eps)
     read_state = false;
   return read_state; 
 }
@@ -41,7 +42,6 @@ void read_evectors_bin_ts(const char* prefix, const int config_i, const int t,
     const int nb_ev, Eigen::MatrixXcd& V) {
   int V3 = pars -> get_int("V3");
   //bool thorough = pars -> get_int("strict");
-  bool thorough = true; 
   const int dim_row = 3 * V3;
   std::string path = pars -> get_path("input");
   //buffer for read in
@@ -166,7 +166,7 @@ void write_eig_sys_bin(const char* prefix, const int config_i, const int t, cons
     std::cout << "Timeslice:  " << t << " Error: write incomplete, exiting" << std::endl;
     exit(1);
   } 
-  std::cout << end - begin << " bytes written" << std::endl;
+  //std::cout << end - begin << " bytes written" << std::endl;
   outfile.close();
 
 }
