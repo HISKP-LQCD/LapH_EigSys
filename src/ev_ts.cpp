@@ -14,7 +14,8 @@
 #include <cstdlib>
 #include <string>
 #include <Eigen/Core>
-#include "slepceps.h"
+#include <mpi.h>
+#include <slepceps.h>
 #include "petsctime.h"
 #include "config_utils.h"
 #include "eigensystem.h"
@@ -25,139 +26,153 @@
 #include "timeslice.h"
 #include "recover_spec.h"
 #include "read_write.h"
-//__Global Declarations__
-//lookup tables
-//int up_3d[V3][3],down_3d[V3][3];
-//Eigen Array
-//Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
 
 int main(int argc, char **argv) {
   //--------------------------------------------------------------------------//
   //                             Local variables                              //
   //--------------------------------------------------------------------------//
-  //Eigen::initParallel();
-  //Eigen::setNbThreads(6);
+  //__Initialize MPI__
+  int mpistat = 0;
+  MPI::Init();
+  PetscMPIInt world = 0, rank = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &world);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  std::cout << "Values from parameters.txt set" << std::endl; 
-  Mat A;              
-  EPS eps;             
+  //get number of configuration from last argument to main
+  int config = atoi( argv[ (argc-1) ] );
+  --argc;
+
+  SlepcInitialize(&argc, &argv, (char*)0, NULL);
+  // handle input file
+  IO* pars = IO::getInstance();
+  pars->set_values("parameters.txt");
+  if(rank == 0) {
+    pars->print_summary();
+    printf("calculating config %d\n", config);
+  }
+
+  char conf_name [200];
+  sprintf(conf_name, "%s/conf.%04d", pars->get_path("conf").c_str(), config );
+
+  PetscErrorCode ierr;
+  // print info
+  PetscPrintf(PETSC_COMM_WORLD,"Number of processors = %d, rank = %d\n", world, rank);
+  //Time Tracking
+  PetscLogDouble v1;
+  PetscLogDouble v2;
+  PetscLogDouble elapsed_time;
+  // start init timer
+  ierr = PetscTime(&v1); CHKERRQ(ierr);
+  PetscPrintf(PETSC_COMM_SELF, "%d: Initializing...\n", rank);
+  // calculate the timeslices to work on
+  // is done on every communicator because I don't
+  // know how else to do
+  const int L0 = pars -> get_int("LT");
+  int tstart = 0;
+  int tend = 0;
+  int todo = 0;
+  int *tstarts = new int[world];
+  int *tends = new int[world];
+  int *todos = new int[world];
+  if (rank == 0) {
+    // calculate chunks minimal chunk size
+    int tmp = L0/world;
+    // fill array
+    for(int i = 0; i < world; ++i)
+      todos[i] = tmp;
+    // increase the first chunks until all
+    // time slices are distributed
+    for(int i = 0; i < L0%world; ++i)
+      ++todos[i];
+    // fill tstarts and tend;
+    tstarts[0] = 0;
+    tends[0] = todos[0] - 1;
+    for(int i = 1; i < world; ++i) {
+      tstarts[i] = tends[i-1] + 1;
+      tends[i] = tstarts[i] + todos[i] - 1;
+    }
+  }
+  MPI_Scatter(tstarts, 1, MPI_INT, &tstart, 1, MPI_INT, 0, PETSC_COMM_WORLD);
+  MPI_Scatter(tends, 1, MPI_INT, &tend, 1, MPI_INT, 0, PETSC_COMM_WORLD);
+  MPI_Scatter(todos, 1, MPI_INT, &todo, 1, MPI_INT, 0, PETSC_COMM_WORLD);
+  delete [] tstarts;
+  delete [] tends;
+  delete [] todos;
+
+  // local variables
+  Mat A;
+  EPS eps;
   EPSType type;
   EPSConvergedReason reason;
-  //Handling infile
-  IO* pars = IO::getInstance();
-  pars -> set_values("parameters.txt");
-  pars -> print_summary();
-  //Set up navigation
-  Nav* lookup = Nav::getInstance();
-  lookup -> init();
-  //in and outpaths
-  std::string GAUGE_FIELDS = pars -> get_path("conf");
   //lattice layout from infile
-  const int L0 = pars -> get_int("LT");
   const int L1 = pars -> get_int("LX");
-  const int L2 = pars -> get_int("LY");
-  const int L3 = pars -> get_int("LZ");
-  const int V3 = pars -> get_int("V3");
+  PetscInt V3 = pars -> get_int("V3");
   const int V_TS = pars -> get_int("V_TS");
   //calculation parameters from infile
-  const int NEV = pars -> get_int("NEV");
-  const int V_4_LIME = pars -> get_int("V4_LIME");
+  const PetscInt nev = pars -> get_int("NEV");
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
-  //chebyshev parameters
-  const double LAM_L = pars -> get_float("lambda_l");
-  const double LAM_C = pars -> get_float("lambda_c"); 
   //hyp-smearing parameters
   const double ALPHA_1 = pars -> get_float("alpha_1");
   const double ALPHA_2 = pars -> get_float("alpha_2");
   const int ITER = pars -> get_int("iter");
 
   //lookup tables
-  //int up_3d[V3][3],down_3d[V3][3];
-  //Eigen Array
-  //Eigen::Matrix3cd **eigen_timeslice = new Eigen::Matrix3cd *[V3];
-  //N: # rows/columns, nev: desired # Eigenvalues, nconv: # converged EVs
+  //Set up navigation
+  Nav* lookup = Nav::getInstance();
+  lookup -> init();
   Tslice* slice = Tslice::getInstance();
   slice -> Tslice::init();
-  PetscInt nev = NEV;
-  PetscInt n;
-  PetscInt nconv;
-  PetscErrorCode ierr;
   //variables holding eigensystem
+  PetscInt nconv;
   PetscScalar eigr;
   PetscScalar eigi;
   std::vector<double> evals_accel;
   std::vector<double> phase;
   Vec xr;
   Vec xi;
-  //Time Tracking
-  PetscLogDouble v1;
-  PetscLogDouble v2;
-  PetscLogDouble elapsed_time;
   //Matrix to hold the entire eigensystem
   Eigen::MatrixXcd eigensystem(MAT_ENTRIES, nev);
   Eigen::MatrixXcd eigensystem_fix(MAT_ENTRIES, nev);
+  Eigen::MatrixXcd vdv(nev,nev);
+  std::complex<double> sum_single;
+  std::complex<double> sum;
   std::complex<double> trc;
 
-  //Allocate Eigen Array to hold timeslice
-  //for ( auto i = 0; i < V3; ++i ) {
-  //  eigen_timeslice[i] = new Eigen::Matrix3cd[3];
-  //  for (auto dir = 0; dir < 3; ++dir) {
-  //    eigen_timeslice[i][dir] = Eigen::Matrix3cd::Identity();
-  //  }
-  //}
-  //Initialize lookup-tables
-  //hopping3d(up_3d, down_3d);
-  //set up output
-  //get number of configuration from last argument to main
-  int config;
-  config = atoi( argv[ (argc-1) ] );
-  --argc;
-  char conf_name [200];
-  sprintf(conf_name, "%s/conf.%04d", GAUGE_FIELDS.c_str(), config );
-  printf("%s\n", conf_name);
-  printf("Using chebyshev parameters Lambda_c: %f and Lambda_l: %f\n", LAM_C, LAM_L);
   //Initialize memory for configuration
-  double* configuration = new double[V_4_LIME];
+  double* configuration = new double[todo*V_TS];
+  //double* configuration = new double[V_4_LIME];
   ierr = read_lime_gauge_field_doubleprec_timeslices(configuration, conf_name,
-      L0, L1, L2, L3, 0, L0);
-  //__Initalize SLEPc__
-  SlepcInitialize(&argc, &argv, (char*)0, NULL);
-  std::cout << "initialized Slepc" << std::endl;
+      L0, L1, L1, L1, tstart, tend);
+  ierr = PetscTime(&v2); CHKERRQ(ierr);
+  elapsed_time = v2 - v1;
+  PetscPrintf(PETSC_COMM_SELF, "%d: init time %f s\n", rank, elapsed_time);
   //loop over timeslices of a configuration
-  for (int ts = 0; ts < 2; ++ts) {
-
+  for(int ts = 0; ts < todo; ++ts) {
+    //if (ts > 0) continue;
+    ierr = PetscTime(&v1); CHKERRQ(ierr);
+    PetscPrintf(PETSC_COMM_SELF, "%d: Initializing time slice %d...\n", rank, ts+tstart);
     //--------------------------------------------------------------------------//
     //                              Data input                                  //
     //--------------------------------------------------------------------------//
 
-    //for every timeslice open new file binary write
-    //evectors = fopen(ts_name,"wb");
     //Time Slice of Configuration
     double* timeslice = configuration + (ts*V_TS);
-    
 
     //Write Timeslice in Eigen Array                                                  
-    //map_timeslice_to_eigen(eigen_timeslice, timeslice);
     slice -> map_timeslice_to_eigen(timeslice);
-    std::cout << slice -> get_gauge(4,2) << std::endl;
     //Gauge_matrices
-    //Eigen::Matrix3cd* gauge = new Eigen::Matrix3cd[V3];
-    //build_gauge_array(gauge);
     //Gaugetrafo of timeslice
     //slice -> transform_ts(gauge);
     //save transformed timeslice
     //write_link_matrices_ts("ts_gauged_000.1300");
     //Apply Smearing algorithm to timeslice ts
     slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
-    std::cout << slice -> get_gauge(4,2) << std::endl;
     //__Define Action of Laplacian in Color and spatial space on vector
-    n = V3;//Tell Shell matrix about size of vectors
-    std::cout << "Try to create Shell Matrix..." << std::endl;
-    ierr = MatCreateShell(PETSC_COMM_WORLD,MAT_ENTRIES,MAT_ENTRIES,PETSC_DECIDE,
-        PETSC_DECIDE,&n,&A);
+    //std::cout << rank << ": Try to create Shell Matrix..." << std::endl;
+    ierr = MatCreateShell(PETSC_COMM_SELF,PETSC_DECIDE,PETSC_DECIDE,MAT_ENTRIES,MAT_ENTRIES,&V3,&A);
       CHKERRQ(ierr);
-    std::cout << "done" << std::endl;
-    std::cout << "Try to set operations..." << std::endl;
+    //std::cout << rank << ": done" << std::endl;
+    //std::cout << rank << ": Try to set operations..." << std::endl;
     ierr = MatSetFromOptions(A);
       CHKERRQ(ierr);
     ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatMult_Laplacian2D);
@@ -165,28 +180,30 @@ int main(int argc, char **argv) {
     ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,
         (void(*)())MatMult_Laplacian2D);
       CHKERRQ(ierr);
-    std::cout << "accomplished" << std::endl;
+    //std::cout << rank << ": accomplished" << std::endl;
     ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,
         (void(*)())MatGetDiagonal_Laplacian2D);
       CHKERRQ(ierr);
-    std::cout << "Matrix creation: ";
+    PetscPrintf(PETSC_COMM_SELF, "%d: set operations.\n", rank);
+    //std::cout << rank << ": Matrix creation..." << std::endl;
       CHKERRQ(ierr);
     ierr = MatSetOption(A, MAT_HERMITIAN, PETSC_TRUE);
       CHKERRQ(ierr);
     ierr = MatSetUp(A);
       CHKERRQ(ierr);
-    ierr = MatGetVecs(A,NULL,&xr);
+    ierr = MatCreateVecs(A,NULL,&xr);
       CHKERRQ(ierr);
-    ierr = MatGetVecs(A,NULL,&xi);
+    ierr = MatCreateVecs(A,NULL,&xi);
       CHKERRQ(ierr);
-      std::cout << "successful" << std::endl;  
+    PetscPrintf(PETSC_COMM_SELF, "%d: matrix creation.\n", rank);
+    //std::cout << rank << ": successful" << std::endl;  
 
     //--------------------------------------------------------------------------//
     //                 Context creation & Options setting                       //
     //--------------------------------------------------------------------------//
 
     //Create eigensolver context
-    ierr = EPSCreate(PETSC_COMM_WORLD, &eps);
+    ierr = EPSCreate(PETSC_COMM_SELF, &eps);
       CHKERRQ(ierr);
 
     //Associate A with eps
@@ -206,18 +223,23 @@ int main(int argc, char **argv) {
     ierr = EPSSetFromOptions(eps);
       CHKERRQ(ierr);
 
+    ierr = PetscTime(&v2); CHKERRQ(ierr);
+    elapsed_time = v2 - v1;
+    PetscPrintf(PETSC_COMM_SELF, "%d: timing %f s\n", rank, elapsed_time);
+    //std::cout << rank << ": solving time " << elapsed_time << std::endl;
+
     //--------------------------------------------------------------------------//
     //                         Solve Ax = kx                                    //
     //--------------------------------------------------------------------------//
 
-    ierr = PetscTime(&v1);
-      CHKERRQ(ierr);
-    std::cout << "Start solving T_8(B) * x = y" << std::endl;
-    ierr = EPSSolve(eps);
-      CHKERRQ(ierr);
-    ierr = PetscTime(&v2);
-      CHKERRQ(ierr);
+    ierr = PetscTime(&v1); CHKERRQ(ierr);
+    PetscPrintf(PETSC_COMM_SELF, "%d: Start solving T(B) * x = y\n", rank);
+    //std::cout << rank << ": Start solving T(B) * x = y" << std::endl;
+    ierr = EPSSolve(eps); CHKERRQ(ierr);
+    ierr = PetscTime(&v2); CHKERRQ(ierr);
     elapsed_time = v2 - v1;
+    PetscPrintf(PETSC_COMM_SELF, "%d: solving time %f s\n", rank, elapsed_time);
+    //std::cout << rank << ": solving time " << elapsed_time << std::endl;
 
     //--------------------------------------------------------------------------//
     //                         Handle solution                                  //
@@ -229,9 +251,9 @@ int main(int argc, char **argv) {
     ierr = EPSGetConverged(eps, &nconv);
     CHKERRQ(ierr);
     //__Retrieve solution__
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Number of converged eigenvalues: %D\n",nconv);
+    ierr = PetscPrintf(PETSC_COMM_SELF,"%D: Number of converged eigenvalues: %D\n", rank, nconv);
     CHKERRQ(ierr);
-    ierr=PetscPrintf(PETSC_COMM_WORLD, "Convergence reason of solver: %D\n",reason);
+    ierr=PetscPrintf(PETSC_COMM_SELF, "%D: Convergence reason of solver: %D\n", rank, reason);
     CHKERRQ(ierr);
 
     nconv = nev;
@@ -247,8 +269,6 @@ int main(int argc, char **argv) {
       ierr = VecGetArray(xr, &ptr_evec);
       CHKERRQ(ierr);
     
-      //save nconv eigenvectors and eigenvalues to one file each
-      //fwrite(ptr_evec, sizeof(ptr_evec[0]), MAT_ENTRIES, evectors);
       //write each eigenvector to eigensystem for check
       eigensystem.col(i) = Eigen::Map<Eigen::VectorXcd, 0 >(ptr_evec, MAT_ENTRIES);
       //fwrite(ptr_eval ,  sizeof(double) , 1, evalues );
@@ -256,37 +276,34 @@ int main(int argc, char **argv) {
       ierr = VecRestoreArray(xr, &ptr_evec);
       CHKERRQ(ierr);
     }
-    //fix phase to 0 in first entry of each eigenvector
     fix_phase(eigensystem, eigensystem_fix, phase);
-    write_eig_sys_bin("eigenvectors", config, ts, nev, eigensystem_fix); 
+    write_eig_sys_bin("eigenvectors", config, tstart+ts, nev, eigensystem_fix); 
     //recover spectrum of eigenvalues from acceleration
     std::vector<double> evals_save;
     recover_spectrum(nconv, evals_accel, evals_save);
-    std::cout << evals_accel.at(0) << " " << evals_save.at(0) <<std::endl;
-    write_eigenvalues_bin("eigenvalues", config, ts, nev, evals_save);
-    write_eigenvalues_bin("phases", config, ts, nev, phase );
-   
-    /*
-    eigenvalues.write(reinterpret_cast<char*>(&evals_accel[0]), evals_accel.size()*sizeof(double));
-    */
-    //check trace of eigensystem
-    trc = ( eigensystem.adjoint() * ( eigensystem ) ).trace();
-    std::cout << "V.adj() * V = " << trc << std::endl;
+    std::cout << rank << ": " << evals_accel.at(0) << " " << evals_save.at(0) <<std::endl;
+    write_eigenvalues_bin("eigenvalues", config, tstart+ts, nev, evals_save);
+    write_eigenvalues_bin("phases", config, tstart+ts, nev, phase);
+  
+    //check trace and sum of eigensystem
+    vdv = eigensystem.adjoint() * ( eigensystem );
+    sum_single = eigensystem.sum();
+    sum = vdv.sum(); 
+    trc = vdv.trace();
+    std::cout << rank << ": tr(V.adj() * V) = " << trc << std::endl;
+    std::cout << rank << ": sum(V.adj() * V) = " << sum << std::endl;
+    std::cout << rank << ": sum(V) = " << sum_single << std::endl;
+    
     //Display user information on files
-    printf("%d phase fixed eigenvectors saved successfully \n", nconv);
-    printf("%d eigenvalues saved successfully \n", nconv);
+    printf("%d: %d phase fixed eigenvectors saved successfully \n", rank, nconv);
+    printf("%d: %d eigenvalues saved successfully \n", rank, nconv);
     //__Clean up__
     ierr = EPSDestroy(&eps);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);
- // delete[] gauge;
-  }//end loop over timeslices
+  } //end loop over timeslices
 
   ierr = SlepcFinalize();
-  //delete gauge
-  //delete configuration;
-  //for (auto j = 0; j < V3; ++j) delete[] eigen_timeslice[j];
-  //delete eigen_timeslice;
+  MPI::Finalize();
   return 0;
 }
-
 
