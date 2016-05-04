@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   int config;
   config = atoi( argv[ (argc-1) ] );
   --argc;
-  int ts = 48;
+  int ts = 62;
   int nev = NEV;
   Eigen::MatrixXcd eigensystem(MAT_ENTRIES, nev);
 
