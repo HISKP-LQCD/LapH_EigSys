@@ -1,6 +1,7 @@
 #include <cstdlib>
 //measure time
 #include <chrono>
+#include <limits>
 #include <string>
 #include <Eigen/Core>
 #include "config_utils.h"
@@ -16,6 +17,10 @@ int main(int argc, char **argv) {
   //--------------------------------------------------------------------------//
   //                             Local variables                              //
   //--------------------------------------------------------------------------//
+  std::cout << "Maximal streamsize: " << std::numeric_limits<std::streamsize>::max() << std::endl; 
+  std::cout << "Minimal streamsize: " << std::numeric_limits<std::streamsize>::min() << std::endl; 
+  std::cout << "Maximal long uint: " << std::numeric_limits<unsigned long int>::max() << std::endl; 
+  std::cout << "Minimal long uint: " << std::numeric_limits<unsigned long int>::min() << std::endl; 
   //Handling infile
   IO* pars = IO::getInstance();
   pars -> set_values("parameters.txt");
@@ -47,13 +52,13 @@ int main(int argc, char **argv) {
   --argc;
   int ts = 62;
   int nev = NEV;
-  Eigen::MatrixXcd eigensystem(MAT_ENTRIES, nev);
+  Eigen::MatrixXcd eigensystem(5, 4);
 
-  std::chrono::high_resolution_clock::time_point now_rd = std::chrono::system_clock::now();
-  read_evectors_bin_ts("eigenvectors", config, ts, nev, eigensystem);
-  std::chrono::high_resolution_clock::time_point then_rd = std::chrono::system_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (then_rd-now_rd).count();
-  std::cout << "Read takes: " << duration << " ms" << std::endl;
+  //std::chrono::high_resolution_clock::time_point now_rd = std::chrono::system_clock::now();
+  //read_evectors_bin_ts("eigenvectors", config, ts, nev, eigensystem);
+  //std::chrono::high_resolution_clock::time_point then_rd = std::chrono::system_clock::now();
+  //auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (then_rd-now_rd).count();
+  //std::cout << "Read takes: " << duration << " ms" << std::endl;
 
   std::chrono::high_resolution_clock::time_point now = std::chrono::system_clock::now();
   write_eig_sys_bin("eigenvectors", config, ts, nev, eigensystem);

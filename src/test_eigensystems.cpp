@@ -10,6 +10,7 @@
 
 int main(int argc, char **argv) {
 
+
   //get number of configuration from last argument to main
   int cfg = atoi( argv[ (argc-1) ] );
   --argc;
