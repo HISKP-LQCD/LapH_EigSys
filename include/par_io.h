@@ -54,6 +54,8 @@ class IO {
     double LAM_C;
     //High end cutoff for spectrum
     double LAM_L;
+    // Degree of chebyshev polynomial
+    int DEG;
 
   public:
     static IO* getInstance();

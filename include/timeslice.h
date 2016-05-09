@@ -4,7 +4,7 @@
 #define _TIMESLICE_H_
 #include <array>
 #include <complex>
-#include "Eigen/Eigen"
+#include <Eigen/Eigen>
 #include <unsupported/Eigen/MatrixFunctions> 
 #include "navigation.h"
 #include "par_io.h"
