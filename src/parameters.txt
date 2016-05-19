@@ -5,28 +5,28 @@
 config_path = /hiskp2/gauges/unit24x24x24x48
 result_path = ./scratch_serial
 # For Testing
-in_path = /hiskp2/eigensystems/A30.32_L32_T64_beta190_mul0030_musig150_mudel190_kappa1632720
+in_path = /hiskp2/helmes/projects/SLapH_serial/src/
 #
 # Lattice Extent
-LT = 64
+LT = 48
 # usually the lattices are equally extending in all spatial directions.
 # Therefore one spatial extent is enough
-LX = 32
+LX = 20
 #
 # Number of eigenvectors to calculate
-NEV = 220
+NEV = 66
 #
 # Hyp-Smearing parameters
 alpha_1 = 0.62 
-alpha_2 = 0.62
+alpha_2 = 0.52
 iter = 3
 #
 # Chebyshev acceleration of eigensystem calculation
 LAM_L = 11.8
 LAM_C = 0.6
-DEG = 16
+DEG = 8
 #
 # Testing section
 # Absolute paths to eigenvectors
-ev_path_1 = /work/hbn28/hbn284/eigensystems/production/A30.32
-ev_path_2 = /work/hbn28/hbn284/eigensystems/A30.32
+ev_path_1 = cheb_static8/
+ev_path_2 = cheb_dyn8/ 

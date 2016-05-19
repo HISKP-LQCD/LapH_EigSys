@@ -17,6 +17,8 @@ class IO {
     std::string config_path;
     std::string result_path;
     std::string input_path;
+    std::string ev_path1;
+    std::string ev_path2;
 
     //controlling the extent of the 4 dimensional configuration
     //LT = temporal, LX = nx, and so on...
