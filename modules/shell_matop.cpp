@@ -101,6 +101,56 @@ static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
 //  }
 }
 
+// projection of the largest eigenvalues
+/*b_prime copies the arrays pointed to by *x and *y to std::vectors iks, yps of type
+Eigen::Vector3cd, respectively
+After this the Multiplication of the Laplace takes place. Result is stored
+in yps, which then is written to the array at *y again. */
+static void b_prime(int nx,const PetscScalar *x,PetscScalar *y) {
+  const int V3 = pars -> get_int("V3");
+  const double LAM_L = pars -> get_float("lambda_l");
+  //define vectors
+  std::vector<Eigen::Vector3cd> iks(V3, Eigen::Vector3cd::Zero());
+  std::vector<Eigen::Vector3cd> yps(V3, Eigen::Vector3cd::Zero());
+
+  #pragma omp parallel
+  {
+    Eigen::Vector3cd tmp_x, tmp_y;
+    //copy read in vectors x and y to vectors of 3cd vectors
+    #pragma omp for
+    for(unsigned i = 0; i < V3; ++i) {
+      tmp_x << x[3*i], x[3*i+1], x[3*i+2];
+      tmp_y << y[3*i], y[3*i+1], y[3*i+2];
+      iks[i] = tmp_x;
+      yps[i] = tmp_y;
+    }
+    //constants used often: c := -2/lambda_L
+    //a := -1.
+    register const double c = -2./(LAM_L);
+    register const double a = -1.;
+    #pragma omp for
+    for ( int k = 0; k < V3; ++k) {
+      yps[k] = c * ( (ts -> get_gauge(k,0)) * iks.at( lookup -> get_up(k,0) )
+               + ( (ts -> get_gauge( lookup -> get_dn(k,0), 0)).adjoint())
+               * iks.at( lookup -> get_dn(k,0) ) 
+               + (ts -> get_gauge(k,1)) * iks.at( lookup -> get_up(k,1) )
+               + (ts -> get_gauge( lookup -> get_dn(k,1),1).adjoint()) 
+               * iks.at( lookup -> get_dn(k,1) )
+               + ts -> get_gauge(k,2) * iks.at( lookup -> get_up(k,2) )
+               + (ts -> get_gauge( lookup -> get_dn(k, 2), 2).adjoint())
+               * iks.at( lookup -> get_dn(k,2) )
+               - 6.0 * (iks.at(k))) + a * (iks.at(k));
+    }
+    //copy vectors back to Petsc-arrays
+    #pragma omp for
+    for(unsigned j = 0; j < V3; ++j) {
+      y[3*j] = (yps[j])(0);
+      y[3*j+1] = (yps[j])(1);
+      y[3*j+2] = (yps[j])(2);
+    }
+  }
+}
+
 static void scale_array(PetscScalar factor, const PetscScalar *in, PetscScalar *out) {
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   for (int k = 0; k < MAT_ENTRIES; ++k) {
@@ -129,6 +179,40 @@ static void equal_arrays(const PetscScalar *a, PetscScalar *y){
   const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
   for (int k = 0; k < MAT_ENTRIES; ++k) {
     y[k] = a[k];
+  }
+}
+
+static void bprime_iter(int nx, const PetscScalar *x, PetscScalar *y){
+  // deg: degree of polynomials
+  // nx: some context variable from Petsc interface
+  // x: vector with which matrix A is multiplied
+  // y = A*x
+  const int MAT_ENTRIES = pars -> get_int("MAT_ENTRIES");
+  //hard coded atm, move to parameters later
+  const int DEG = pars -> get_int("DEG");
+  //const int DEG = 8;
+  std::vector<PetscScalar> Told(MAT_ENTRIES); 
+  std::vector<PetscScalar> Tcur(MAT_ENTRIES); 
+  std::vector<PetscScalar> Tnew(MAT_ENTRIES);
+  std::vector<PetscScalar> tmp(MAT_ENTRIES);
+  // initialize chebyshev polynomials
+  b_prime( nx, &x[0], &Tcur[0]);
+  equal_arrays(&x[0], &Told[0]);
+  // if deg is 1 or less return initialised values
+  if (DEG >=1){
+  // else iteratively calculate chebyshev polynomials up to deg
+  // T_n(B) = 2*B(T_{n-1}(B))-T_{n-2}(B)
+    for (int n = 2; n <= DEG; n++){
+      // store B(Tcur(Bx)) in tmp1
+      b_prime(nx, &Tcur[0], &tmp[0]);
+      // scale tmp1
+      scale_array(2., &tmp[0], &tmp[0]);
+      //calculate new polynomial
+      subtract_arrays(&Told[0], &tmp[0], &y[0]);
+      // overwrite new variables
+      equal_arrays(&Tcur[0], &Told[0]);
+      equal_arrays(&y[0], &Tcur[0]);
+    }
   }
 }
 
@@ -236,6 +320,44 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y) {
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   //choose tv instead of tv2 to enable chebyshev acceleration
   tv_iter( nx,&px[0],&py[0]);
+
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatMult_Laplacian2D_Largest"
+/*
+    Matrix-vector product subroutine for the 2D Laplacian.
+
+    The matrix used is the 2 dimensional discrete Laplacian on unit square with
+    zero Dirichlet boundary condition.
+
+    Computes y <-- A*x, where A is the block tridiagonal matrix
+
+                 | T -I          |
+                 |-I  T -I       |
+             A = |   -I  T       |
+                 |        ...  -I|
+                 |           -I T|
+
+    The subroutine b_prime is called to compute y<--T*x.
+ */
+PetscErrorCode MatMult_Laplacian2D_Largest(Mat A,Vec x,Vec y) {
+  void              *ctx;
+  int               nx;
+  const PetscScalar *px;
+  PetscScalar       *py;
+  PetscErrorCode    ierr;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
+  nx = *(int*)ctx;
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  //choose tv instead of tv2 to enable chebyshev acceleration
+  bprime_iter( nx,&px[0],&py[0]);
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);

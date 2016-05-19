@@ -158,10 +158,10 @@ void write_eig_sys_bin(const char* prefix, const int config_i, const int t, cons
   }
   std::cout << "Writing to file:" << file << std::endl;
   std::ofstream outfile(file, std::ofstream::binary);
-  int begin = outfile.tellp();
+  long begin = outfile.tellp();
   std::streamsize eigsys_bytes =2*3*V3*nb_ev*sizeof(double); 
   outfile.write(reinterpret_cast<char*> (V.data()), eigsys_bytes);
-  int end = outfile.tellp();
+  long end = outfile.tellp();
   if ( (end - begin)/eigsys_bytes != 1 ){
     std::cout << "Timeslice:  " << t << " Error: write incomplete, exiting" << std::endl;
     std::cout << (end-begin) << " bytes instead of expected "<< eigsys_bytes << " bytes" << std::endl;

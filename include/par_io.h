@@ -69,6 +69,8 @@ class IO {
     double get_float(std::string);
     //get path to configs or destination
     std::string get_path(std::string);
+    //set certain path
+    void set_inputpath(std::string);
 };
 
 #endif //_PARASTRUCT_H_

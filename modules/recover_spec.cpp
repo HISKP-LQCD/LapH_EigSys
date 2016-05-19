@@ -10,6 +10,14 @@
 static IO* const pars = IO::getInstance();
 
 //Invert map
+double invert_Bprime(const double value_in) {
+
+  //Parameters for projection
+  double lambda_l = pars -> get_float("lambda_l");
+  return(-lambda_l*(value_in+1.)*0.5);
+
+}
+//Invert map
 double invert_B(const double value_in) {
 
   //Parameters for projection
@@ -48,6 +56,18 @@ void recover_spectrum(const int nb_ev, const std::vector<double>& evals_in, std:
 
     evals_out.at(i) = invert_Tn( evals_in.at(i) );
     evals_out.at(i) = invert_B(evals_out.at(i));
+
+  }
+
+}
+
+//Recover original eigenvalues from Chebyshev and map
+void recover_spectrum_large(const int nb_ev, const std::vector<double>& evals_in, std::vector<double>& evals_out) {
+  if (evals_out.size() != nb_ev) evals_out.resize(nb_ev, 0);
+  for (unsigned int i = 0; i < evals_in.size(); ++i) {
+
+    evals_out.at(i) = invert_Tn( evals_in.at(i) );
+    evals_out.at(i) = invert_Bprime(evals_out.at(i));
 
   }
 
