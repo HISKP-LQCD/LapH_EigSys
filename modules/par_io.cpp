@@ -5,6 +5,10 @@ IO* IO::getInstance(){
 return &theInstance;
 }
 
+void IO::set_inputpath(std::string infile) {
+  input_path = infile;
+}
+
 void IO::set_values(const char* infile) {
   //one line of config file
   std::string config_line;
