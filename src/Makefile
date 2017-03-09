@@ -14,8 +14,9 @@ MDIR        = ../modules
 VPATH       = .:$(MDIR)
 LIMEPATH    = $(HOME)/code/lime-1.3.2
 EIGENPATH   = $(HOME)/code/eigen
+HDF5_INC		= /hiskp2/helmes/programm_libs/hdf5-1.10/build/include/	
 
-INCPATH     = ../include $(EIGENPATH) $(LIMEPATH)/include $(PETSC_INC) $(SLEPC_INC)
+INCPATH     = ../include $(EIGENPATH) $(LIMEPATH)/include $(PETSC_INC) $(SLEPC_INC) $(HDF5_INC)
 LIBPATH     = $(LIMEPATH)/lib $(PETSC_LIB) $(SLEPC_LIB)
 LIBS        = m lime petsc slepc mpicxx
 
