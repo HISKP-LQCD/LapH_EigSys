@@ -18,13 +18,18 @@
       H5Pclose(plist_id);
       // create the necessary groups
       // info for metadata
-      hid_t gr_info = H5Gcreate(file_id, "/Params", H5P_DEFAULT, H5P_DEFAULT,
+      gr_info = H5Gcreate(file_id, "/params", H5P_DEFAULT, H5P_DEFAULT,
                                 H5P_DEFAULT);
-      H5Gclose(gr_info);
+
       // group holding datasets
-      hid_t gr_data = H5Gcreate(file_id, "/Data", H5P_DEFAULT, H5P_DEFAULT,
+      gr_data = H5Gcreate(file_id, "/data", H5P_DEFAULT, H5P_DEFAULT,
                                 H5P_DEFAULT);
-      H5Gclose(gr_info);
+      //inside groups create groups for datasets
+      gr_evecs = H5Gcreate(file_id, "data/evecs", H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
+      gr_evals = H5Gcreate(file_id, "/data/evals", H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
+      gr_phase = H5Gcreate(file_id, "/data/phase", H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
+       
+       
     }
     else {
       std::cout << "MpiIO: mpi rank is not 0, no file setup." << std::endl;

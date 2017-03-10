@@ -12,6 +12,8 @@
 #include <mpi.h>
 #include <vector>
 
+//#include "hdf5_typedefs.h"
+
 //! Parallel IO for eigensystems
 /*! Class to setup, read and write eigensystems to a binary file. Uses the hdf5
  * interface.
@@ -27,11 +29,15 @@ class MpiIO {
   std::string filename;
   //! hdf5 File identifier
   hid_t file_id;
-  //! hdf5 datatypes
-  //! complex datatype
-  //hid_t cmplx_id = H5Tcreate(H5T_COMPOUND, 2*sizeof(double));
-  //H5Tinsert(cmplx_id, "real", 0, H5T_NATIVE_DOUBLE);
-  //H5Tinsert(cmplx_id, "img", sizeof(double), H5T_NATIVE_DOUBLE);
+  //! hdf5 group identifier for metadata
+  hid_t gr_info;
+  //! hdf5 group identifier for Data
+  hid_t gr_data;
+  //! hdf5 group identifier for datasets
+  hid_t gr_evecs;
+  hid_t gr_evals;
+  hid_t gr_phase;
+
 
   protected:
   public:
@@ -58,6 +64,13 @@ class MpiIO {
 
   inline void finalize(const int mpi_rank){
     if (mpi_rank == 0){
+      // close all open groups
+      H5Gclose(gr_info);
+      H5Gclose(gr_evecs);
+      H5Gclose(gr_evals);
+      H5Gclose(gr_phase);
+      H5Gclose(gr_data);
+      // close open file
       H5Fclose(file_id);
     }
     else {
