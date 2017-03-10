@@ -12,7 +12,7 @@ EIGENPATH   = $(WORK)/helmes/programm_libs/eigen-3.2.0
 #INCPATH     = ../include $(EIGENPATH) $(LIMEPATH)/include /usr/local/include \
 #							$(PETSC_DIR)/include $(PETSC_DIR)/$(PETSC_ARCH)/include $(PETSC_DIR)/include/mpiuni \
 #							$(SLEPC_DIR)/include $(SLEPC_DIR)/$(PETSC_ARCH)/include
-INCPATH     = ../include /usr/include
+INCPATH     = ../include $(EIGENPATH) usr/include
 
 #LIBPATH     = $(LIMEPATH)/lib $(SLEPC_DIR)/lib $(PETSC_ARCH)/lib
 LIBPATH     = /usr/lib
@@ -23,7 +23,7 @@ CPPFLAGS    = -std=c++0x -O2 -Wall
 
 ### 
 MAIN    = test_mpi_io
-GENERAL = read_write_mpi
+GENERAL = read_write_mpi par_io
 MODULES = $(GENERAL)
 
 ### programs to use
@@ -69,3 +69,6 @@ mkdep: $(addsuffix .d,$(PGMS))
 # clean directory
 # clean is already predefined in the includes above
 
+myclean:
+	@ -rm -rf *.d *.o *.alog *.clog *.slog $(MAIN)
+.PHONY: myclean

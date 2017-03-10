@@ -8,11 +8,13 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
-#include <hdf5.h>
-#include <mpi.h>
 #include <vector>
 
-//#include "hdf5_typedefs.h"
+#include <Eigen/Core>
+#include <hdf5.h>
+#include <mpi.h>
+
+#include "typedefs_io.h"
 
 //! Parallel IO for eigensystems
 /*! Class to setup, read and write eigensystems to a binary file. Uses the hdf5
@@ -63,6 +65,7 @@ class MpiIO {
   void setup(const int mpi_rank, const MPI_Info info);
 
   inline void finalize(const int mpi_rank){
+    MPI_Barrier(MPI_COMM_WORLD);
     if (mpi_rank == 0){
       // close all open groups
       H5Gclose(gr_info);
@@ -70,6 +73,7 @@ class MpiIO {
       H5Gclose(gr_evals);
       H5Gclose(gr_phase);
       H5Gclose(gr_data);
+
       // close open file
       H5Fclose(file_id);
     }
@@ -77,13 +81,16 @@ class MpiIO {
       std::cout << "MpiIO: mpi rank is not 0, no file finalize." << std::endl;
     }
   };
-  //! Write a record to a hdf5 file in parallel
-  /*! The record is set up in the function, the datatype is specified on input
+  //! Write an Eigensystem to a hdf5 file in parallel
+  /*! The dataset is set up in the function, the datatype is specified on input
   */
-  //void write_rec(const to_write, const rec_id);
+  void write_ds(const size_t ts, Eigen::MatrixXcd& V);
+  //! Write evals or phase to hdf5 file
+  /*! Overloaded function for writing dataset of eigenvalues or phases.
+   * distinguished by group_id
+   *
+   */
+  void write_ds(const size_t ts, const std::string id, const std::vector<double>& ev);
   //! read a record from a hdf5 file in parallel
-  //void read_rec()
-
-
 };
 #endif // READ_WRITE_MPI_H_

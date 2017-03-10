@@ -8,13 +8,13 @@ result_path = ./scratch_serial
 in_path = /hiskp2/eigensystems/A30.32_L32_T64_beta190_mul0030_musig150_mudel190_kappa1632720
 #
 # Lattice Extent
-LT = 64
+LT = 16
 # usually the lattices are equally extending in all spatial directions.
 # Therefore one spatial extent is enough
-LX = 32
+LX = 8
 #
 # Number of eigenvectors to calculate
-NEV = 220
+NEV = 10
 #
 # Hyp-Smearing parameters
 alpha_1 = 0.62 
