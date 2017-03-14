@@ -9,7 +9,7 @@
 int main(int argc, char **argv) {
   int mpistat = 0;
   MPI::Init();
-  int mpi_size = 0, mpi_rank = 0;
+  int mpi_size, mpi_rank;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
   MPI_Comm comm = MPI_COMM_WORLD;
@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
   for(int i = 0; i < mpi_size; ++i){
     std::cout << todos[i] << std::endl;
   }
+  char filename[30];
+  sprintf(filename,"test%d.h5",mpi_rank);
   MpiIO save_eigsys("test.h5",mpi_rank);
   MPI_Scatter(tstarts, 1, MPI_INT, &tstart, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Scatter(tends, 1, MPI_INT, &tend, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -70,12 +72,12 @@ int main(int argc, char **argv) {
   for(int ts = 0; ts < todo; ++ts) {
     Eigen::MatrixXcd V = Eigen::MatrixXcd::Identity(pars->get_int("MAT_ENTRIES"),pars->get_int("NEV"));   
     save_eigsys.write_ds(ts+tstart,V);
-    std::vector<double> eval (pars -> get_int("NEV"));
-    for (auto& i:eval) i = 0;
-    save_eigsys.write_ds(ts+tstart, "ev", eval);
-    std::vector<double> phs (pars -> get_int("NEV"));
-    for (auto& i:phs) i = 0;
-    save_eigsys.write_ds(ts+tstart, "phs", phs);
+   // std::vector<double> eval (pars -> get_int("NEV"));
+   // for (auto& i:eval) i = 0;
+   // save_eigsys.write_ds(ts+tstart, "ev", eval);
+   // std::vector<double> phs (pars -> get_int("NEV"));
+   // for (auto& i:phs) i = 0;
+   // save_eigsys.write_ds(ts+tstart, "phs", phs);
   }
   save_eigsys.finalize(mpi_rank);
   MPI::Finalize();

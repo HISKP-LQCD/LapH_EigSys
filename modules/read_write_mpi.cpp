@@ -7,7 +7,7 @@ static IO* const pars=IO::getInstance();
 void MpiIO::setup(const int mpi_rank, const MPI_Info info){
 
   // if not master process, do nothing
-  if (mpi_rank == 0){
+  //if (mpi_rank == 0){
 
     // property list for file creation parallel I/O access
     hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
@@ -30,10 +30,11 @@ void MpiIO::setup(const int mpi_rank, const MPI_Info info){
     gr_evecs = H5Gcreate(file_id, "data/evecs", H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
     gr_evals = H5Gcreate(file_id, "/data/evals", H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
     gr_phase = H5Gcreate(file_id, "/data/phase", H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
-  }
-  else {
-    std::cout << "MpiIO: mpi rank is not 0, no file setup." << std::endl;
-  }
+    std::cout<< "Set up HDF5 File on process: " << mpi_rank << std::endl; 
+  //}
+  //else {
+  //  std::cout << "MpiIO: mpi rank is not 0, no file setup." << std::endl;
+  //}
 }
 
 void MpiIO::write_ds(const size_t ts, Eigen::MatrixXcd& V){
@@ -62,9 +63,9 @@ void MpiIO::write_ds(const size_t ts, Eigen::MatrixXcd& V){
   err = H5Dwrite(evecs_ts, h5_comp, H5S_ALL, H5S_ALL, plist_id, write_esys.data());
   H5Dclose(evecs_ts);
   H5Sclose(dataspace);
-  int mpi_rank = 0;
-  MPI_Comm_rank(MPI_COMM_SELF, &mpi_rank);
-  std::cout << "written from rank:" << mpi_rank << std::endl; 
+  int mpi_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+  std::cout << "written timeslice " << ts << " from rank:" << mpi_rank << " into file: " << this->file_id <<  std::endl; 
 }
 
 void MpiIO::write_ds(const size_t ts, const std::string id, const std::vector<double>& ev){
@@ -74,7 +75,7 @@ void MpiIO::write_ds(const size_t ts, const std::string id, const std::vector<do
   if (id.compare("ev") == 0){gr_id = this -> gr_evals;}
   else if (id.compare("phs") == 0){gr_id = this -> gr_phase;}
   hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
-  H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+  H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
   char _dn [6];
   sprintf(_dn,"ts_%03d",ts);
   const int rank = 1;

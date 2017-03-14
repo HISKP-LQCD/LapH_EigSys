@@ -65,8 +65,6 @@ class MpiIO {
   void setup(const int mpi_rank, const MPI_Info info);
 
   inline void finalize(const int mpi_rank){
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (mpi_rank == 0){
       // close all open groups
       H5Gclose(gr_info);
       H5Gclose(gr_evecs);
@@ -76,10 +74,6 @@ class MpiIO {
 
       // close open file
       H5Fclose(file_id);
-    }
-    else {
-      std::cout << "MpiIO: mpi rank is not 0, no file finalize." << std::endl;
-    }
   };
   //! Write an Eigensystem to a hdf5 file in parallel
   /*! The dataset is set up in the function, the datatype is specified on input
