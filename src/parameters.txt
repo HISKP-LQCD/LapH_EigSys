@@ -20,6 +20,11 @@ NEV = 66
 alpha_1 = 0.62 
 alpha_2 = 0.52
 iter = 3
+# tuning section hyp smearing
+alpha_1_i = 0.3 
+alpha_1_f = 0.7
+alpha_2_i = 0.3
+alpha_2_f = 0.7
 #
 # Chebyshev acceleration of eigensystem calculation
 LAM_L = 11.8

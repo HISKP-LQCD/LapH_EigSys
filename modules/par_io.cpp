@@ -67,8 +67,20 @@ void IO::set_values(const char* infile) {
         if (keyword == "alpha_1") {
           floatings["alpha_1"] = atof(value.c_str());
         }
+        if (keyword == "alpha_1_i") {
+          floatings["alpha_1_i"] = atof(value.c_str());
+        }
+        if (keyword == "alpha_1_f") {
+          floatings["alpha_1_f"] = atof(value.c_str());
+        }
         if (keyword == "alpha_2") {
           floatings["alpha_2"] = atof(value.c_str());
+        }
+        if (keyword == "alpha_2_i") {
+          floatings["alpha_2_i"] = atof(value.c_str());
+        }
+        if (keyword == "alpha_2_f") {
+          floatings["alpha_2_f"] = atof(value.c_str());
         }
         if (keyword == "LAM_L") {
           floatings["LAM_L"] = atof(value.c_str());
@@ -103,7 +115,11 @@ void IO::set_values(const char* infile) {
   
   iter = integers["iter"];
   alpha_1 = floatings["alpha_1"];
+  alpha_1_i = floatings["alpha_1_i"];
+  alpha_1_f = floatings["alpha_1_f"];
   alpha_2 = floatings["alpha_2"];
+  alpha_2_i = floatings["alpha_2_i"];
+  alpha_2_f = floatings["alpha_2_f"];
 
   LAM_L = floatings["LAM_L"];
   LAM_C = floatings["LAM_C"];
@@ -179,8 +195,24 @@ double IO::get_float(std::string spec) {
     return alpha_1;
   }
 
+  if (spec == "alpha_1_i") {
+    return alpha_1_i;
+  }
+
+  if (spec == "alpha_1_f") {
+    return alpha_1_f;
+  }
+
   if (spec == "alpha_2") {
     return alpha_2;
+  }
+
+  if (spec == "alpha_2_i") {
+    return alpha_2_i;
+  }
+
+  if (spec == "alpha_2_f") {
+    return alpha_2_f;
   }
   
   if (spec == "lambda_l") {
@@ -214,6 +246,3 @@ std::string IO::get_path(std::string spec) {
 
   else return "not found";
 }
-
-
-

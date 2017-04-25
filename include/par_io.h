@@ -46,8 +46,12 @@ class IO {
     //parameters for Smearing and Chebyshev acceleration
     //weight for 2d staples
     double alpha_1;
+    double alpha_1_i;
+    double alpha_1_f;
     //weight for outer 3d staples
     double alpha_2;
+    double alpha_2_i;
+    double alpha_2_f;
     //number of iterations
     int iter;
 
