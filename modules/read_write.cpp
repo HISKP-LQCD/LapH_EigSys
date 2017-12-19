@@ -1,7 +1,6 @@
 //everything to read and write from/to files
 
 #include "read_write.h"
-
 static IO* const pars = IO::getInstance();
 static Tslice* const eigen_timeslice = Tslice::getInstance();
 

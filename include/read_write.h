@@ -14,7 +14,7 @@
 #include "par_io.h"
 #include "structs.h"
 #include "timeslice.h"
-#include "variables.h"
+//#include "variables.h"
 /***************************Input from files**********************************/
 
 //Read in Eigenvectors from one Timeslice in binary format to V

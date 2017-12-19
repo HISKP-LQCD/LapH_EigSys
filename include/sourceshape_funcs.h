@@ -10,14 +10,16 @@
 #include <vector>
 #include "Eigen/Eigen"
 
+#include "navigation.h"
 #include "structs.h"
+#include "par_io.h"
 //#include "variables.h"
 
 
 //calculate source shape
 //std::complex<double> source_shape(Eigen::MatrixXcd& V, int r, int dir);
 void source_shape_complete(const Eigen::MatrixXcd& V, const int nb_ev, std::vector<shp>& result);
-void hopping3d(int iup[][3], int idown[][3]);
+//void hopping3d(int iup[][3], int idown[][3]);
 
 //Map sourceshape to correct coordinates
 void afterburner( std::vector<shp>& results );

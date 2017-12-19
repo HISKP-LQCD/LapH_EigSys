@@ -1,23 +1,28 @@
 #include <tuple>
 #include <utility>
-#include "config_utils.h"
-#include "sourceshape.h"
+//#include "config_utils.h"
+#include "sourceshape_funcs.h"
 #include "structs.h"
-#include "variables.h"
+#include "par_io.h"
+//#include "variables.h"
 #include "read_write.h"
 
-int up_3d[V3][3];
-int down_3d[V3][3];
+//int up_3d[V3][3];
+//int down_3d[V3][3];
 
 int main(int argc, char* argv[]) {
+
+  // handle input file
+  IO* pars = IO::getInstance();
+  pars->set_values("parameters.txt");
   if (argc != 4) std::cout << "No parameters entered. Arguments are: configuration timeslice dim(V)" << std::endl;
   //Parameters from command line and variables
   int config = atoi(argv[1]);
   int time = atoi(argv[2]);
   int dim_col = atoi(argv[3]);
   std::cout << "Entered parameters: " << "config: " << config << " ts: " << time << " nev: " << dim_col << std::endl;
-  const int dim_row = 3 * V3;
-  hopping3d(up_3d, down_3d);
+  const int dim_row = 3 * pars -> get_int("V3");
+  //hopping3d(up_3d, down_3d);
 
   //initialize memory for timeslice and results
   Eigen::MatrixXcd V (dim_row, dim_col);
@@ -26,7 +31,7 @@ int main(int argc, char* argv[]) {
   ev.reserve(dim_col);
 
   std::vector<shp> result;
-  result.reserve(L1*L2*L3);
+  result.reserve(pars-> get_int("V3"));
   int size1 = result.size();
 
   //temporary vector for averaging
