@@ -62,6 +62,8 @@ class IO {
     double LAM_L;
     // Degree of chebyshev polynomial
     int DEG;
+    // Number of openmp threads
+    int OMP_THRDS;
 
   public:
     static IO* getInstance();

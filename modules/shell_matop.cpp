@@ -23,7 +23,8 @@ static void tv2(int nx,const PetscScalar *x,PetscScalar *y) {
   //iks.clear();
   //yps.clear();
   //Eigen::Vector3cd tmp_x, tmp_y;
-
+  omp_set_num_threads(pars -> get_int("OMP_THRDS"));
+  std::cout << "Calculating with " << omp_get_num_threads() << " threads" << std::endl;
   #pragma omp parallel
   {
   Eigen::Vector3cd tmp_x, tmp_y;

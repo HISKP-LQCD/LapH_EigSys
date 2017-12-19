@@ -30,6 +30,8 @@ alpha_2_f = 0.7
 LAM_L = 11.8
 LAM_C = 0.6
 DEG = 8
+# OpenMP Threads
+OMP_THRDS = 2
 #
 # Testing section
 # Absolute paths to eigenvectors

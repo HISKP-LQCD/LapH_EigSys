@@ -62,6 +62,9 @@ void IO::set_values(const char* infile) {
         if (keyword == "DEG") {
           integers["DEG"] = atoi(value.c_str());
         }
+        if (keyword == "OMP_THRDS") {
+          integers["OMP_THRDS"] = atoi(value.c_str());
+        }
 
         //floating point valued map variables
         if (keyword == "alpha_1") {
@@ -124,6 +127,7 @@ void IO::set_values(const char* infile) {
   LAM_L = floatings["LAM_L"];
   LAM_C = floatings["LAM_C"];
   DEG = integers["DEG"];
+  OMP_THRDS = integers["OMP_THRDS"];
 
 }
 
@@ -142,6 +146,7 @@ void IO::print_summary() {
   std::cout << "number of directions:				   " << NDIR << std::endl;
   std::cout << "Volume in gauge matrices:			   " << V3 << std::endl;
   std::cout << "lime config volume in doubles:			   " << V4_LIME << std::endl;
+  std::cout << "OpenMP threads:"               << OMP_THRDS << std::endl; 
 }
 
 int IO::get_int(std::string spec) {
@@ -185,6 +190,9 @@ int IO::get_int(std::string spec) {
   }
   if (spec == "DEG") {
     return DEG;
+  }
+  if (spec == "OMP_THRDS") {
+    return OMP_THRDS;
   }
   else return -1;
 
