@@ -12,7 +12,8 @@
  */
 
 #ifndef VARIABLES_H_
-#define VARIABLES_H_/*
+#define VARIABLES_H_
+
 //Geometry (set up for equal spatial extent)
 const int L0 = 4; //nt
 const int L1 = 4; //nx
@@ -24,27 +25,28 @@ const int NCOL = 3;
 const int V_TS = L1*L2*L3*NDIR*NCOL*NCOL*2; //2 is for complex
 const int V_4_LIME = V_TS * L0;
 const int MAT_ENTRIES = NCOL*V3;
-//desired number of eigenvalues
-const int NEV = 120;
 
-//IO-Paths
-//path to gauge fields
-const std::string GAUGE_FIELDS = "/hiskp2/gauges/test4x4x4x4";
+//Hyp-Smearing
+//alpha1
+const double A1_LOW = 0.5;
+const double A1_HIGH = 0.7;
+const double A1_STEP = 0.04;
+
+//alpha2
+const double A2_LOW = 0.1;
+const double A2_HIGH = 0.78;
+const double A2_STEP = 0.04;
+
 //Chebyshev-acceleration
 const double LAM_L = 11.8;
-const double LAM_C = 6.0;
-
-//Hyp-Smearing Parameters
-const double ALPHA_1 = 0.62;
-const double ALPHA_2 = 0.62;
-const int ITER = 3;
+const double LAM_C = 0.4;
 
 //random seed
 const unsigned int RND_SEED = 1227;
-*/
+
 //Global Declarations
-//extern int up_3d[][3], down_3d[][3];
+extern int up_3d[V3][3], down_3d[V3][3];
 //Time Slice of Configuration
-//extern Eigen::Matrix3cd **eigen_timeslice;
+extern Eigen::Matrix3cd **eigen_timeslice;
 
 #endif /* VARIABLES_H_ */

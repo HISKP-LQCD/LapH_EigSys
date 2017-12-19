@@ -8,10 +8,10 @@
 #include <tuple>
 #include <utility>
 #include <vector>
-#include <Eigen/Eigen>
+#include "Eigen/Eigen"
 
 #include "structs.h"
-#include "variables.h"
+//#include "variables.h"
 
 
 //calculate source shape
