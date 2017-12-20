@@ -1,3 +1,4 @@
+#include <sstream>
 #include <tuple>
 #include <utility>
 //#include "config_utils.h"
@@ -15,6 +16,10 @@ int main(int argc, char* argv[]) {
   // handle input file
   IO* pars = IO::getInstance();
   pars->set_values("parameters.txt");
+  //lookup tables
+  //Set up navigation
+  Nav* lookup = Nav::getInstance();
+  lookup -> init();
   if (argc != 4) std::cout << "No parameters entered. Arguments are: configuration timeslice dim(V)" << std::endl;
   //Parameters from command line and variables
   int config = atoi(argv[1]);
@@ -40,7 +45,7 @@ int main(int argc, char* argv[]) {
   //Read in eigenvectors of one timeslice
   read_evectors_bin_ts("eigenvectors",
       config, time, dim_col, V);
-  std::cout << V(0,0) << std::endl;
+  std::cout << V.rows() << std::endl;
   
   //Read in eigenvalues of one timeslice
   //read_eigenvalues_bin("/hiskp2/helmes/A60_0600_L120/eigensystems/hyp_05_07_03/eigenvalues",
@@ -58,12 +63,13 @@ int main(int argc, char* argv[]) {
   
   //average psi with same r afterburner has to complete before
   avg_radii(result, shp_avg);
-  std::cout << "avg complete" << std::endl; 
+  std::cout << "avg complete" << std::endl;
+  std::cout << "Length of average vector:" << shp_avg.size() << std::endl;
   for (auto& s:shp_avg) std::cout << std::get<0>(s) << " "<< std::get<1>(s) << std::endl;
 
   //save sourceshape
-  write_sourceshape_ascii("sourceshape_A40_L20",config,time,dim_col,shp_avg);
-  write_sourceshape_bin("sourceshape_A40_L20",config,time,dim_col,shp_avg);
+  write_sourceshape_ascii("sourceshape",config,time,dim_col,shp_avg);
+  write_sourceshape_bin("sourceshape",config,time,dim_col,shp_avg);
 
   //Clean-up
   return 0;
