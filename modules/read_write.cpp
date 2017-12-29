@@ -182,6 +182,8 @@ void write_sourceshape_ascii(const char* prefix, const int config,
   //sprintf(filename, "%s_nev%d.%04d.%03d.txt", prefix, nb_ev, config, tslice);
   //std::ofstream write_file(filename);
   std::ofstream write_file(filename.str());
+  // A header is a brilliant idea
+  write_file << "#r\tpsi(r)"<< std::endl;
   for (auto& element:results) {
     write_file << std::setprecision(12) << std::get<0>(element) << " " << std::get<1>(element) << std::endl;
   }
