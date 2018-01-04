@@ -51,7 +51,7 @@ static std::complex<double> dll_op(const Eigen::MatrixXcd& V,
 }
 
 //Calculates the source shape in dependance of an vector r
-void  source_shape_complete(const Eigen::MatrixXcd& V, const int nb_ev,
+void source_shape_complete(const Eigen::MatrixXcd& V, const int nb_ev,
     std::vector<shp>& results) {
   for (int r1 = 0; r1 < pars -> get_int("LX"); r1+=2) {
     for (int r2 = 0; r2 < pars -> get_int("LY"); r2+=2) {
@@ -69,7 +69,8 @@ void  source_shape_complete(const Eigen::MatrixXcd& V, const int nb_ev,
         }
         //write results
         element.r = distance;
-//        element.length = sqrt(distance.squaredNorm());
+        std::cout << distance << std::endl;
+        element.length = sqrt(distance.squaredNorm());
         element.shape = psi.real();
         results.push_back(element);
         //std::cout << element.shape << std::endl;
@@ -111,8 +112,8 @@ void avg_radii(const std::vector<shp>& results, std::vector<std::pair<double, do
         ++std::get<0>(*t);
         std::get<2>(*t) += res.shape; 
         copied = true;
-        std::cout << std::get<0>(*t) << " " << std::get<1>(*t) << " " << std::get<2>(*t) << std::endl;
-        std::cout << tmp.size() << std::endl;
+        //std::cout << std::get<0>(*t) << " " << std::get<1>(*t) << " " << std::get<2>(*t) << std::endl;
+        //std::cout << tmp.size() << std::endl;
       }
     }
     
@@ -120,7 +121,7 @@ void avg_radii(const std::vector<shp>& results, std::vector<std::pair<double, do
       std::tuple<int,double,double> new_tmp;
       new_tmp = std::make_tuple(1,res.length, res.shape);
       tmp.push_back(new_tmp);
-      std::cout << tmp.size() << std::endl;
+      //std::cout << tmp.size() << std::endl;
     }
   }
   
@@ -139,6 +140,7 @@ void avg_radii(const std::vector<shp>& results, std::vector<std::pair<double, do
 void afterburner( std::vector<shp>& results ){
 
   //loop over results
+  std::cout << "\n|r|\tr"<<std::endl;
   for (auto& element:results){
     //check ri 
     for (int indx = 0 ; indx < 3; ++indx) {
@@ -148,5 +150,6 @@ void afterburner( std::vector<shp>& results ){
       }
     }
     element.length = sqrt((element.r).squaredNorm());
+    std::cout << element.length << "\t" << element.r << std::endl;
   }
 }

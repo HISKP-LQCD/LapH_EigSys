@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
  //calculate sourceshape
   std::cout << "calculating, please wait..." << std::endl;
   source_shape_complete(V, dim_col, result);
-  afterburner(result);
+  //afterburner(result);
   
   //average psi with same r afterburner has to complete before
   avg_radii(result, shp_avg);
