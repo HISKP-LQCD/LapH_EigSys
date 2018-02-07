@@ -10,7 +10,7 @@
 //one holds the indices in the upwards, one in the downwards direction. Every
 //spacepoint is encoded in an integer respecting periodic boundary conditions.
 //Map from 3d-spatial coordinates to lookup table integers is:
-//ind(x,y,z) = z*L2*L1 + y*L1 + x
+//ind(x,y,z) = x*L2*L1 + y*L1 + z
 //second dimension of lookup tables gives index in x- (0), y- (1) and z- (2)
 //direction.  
 //typedef boost::multi_array<int,2> look;

@@ -32,33 +32,31 @@ void Tslice::init() {
 
 //mapping from gauge config to Eigen 3x3 complex matrix arrays
 void Tslice::map_timeslice_to_eigen( double* timeslice) {
-  int L1 = pars -> get_int("LX");
+  int L1 = pars -> get_int("LZ");
   int L2 = pars -> get_int("LY");
-  int L3 = pars -> get_int("LZ");
+  int L3 = pars -> get_int("LX");
   
   int NDIR = pars -> get_int("NDIR");
   int NCOL = pars -> get_int("NCOL");
   int V3 = pars -> get_int("V3");
 
   int V_TS = pars -> get_int("V_TS");
-  //TODO: Rename z to x and x to z, because now it is very confusing! Do that
-  //consistently throughout function
   //read in elements
   int el_input = 0;
-  for (int z = 0; z < L3; ++z) {//spatial loops
+  for (int x = 0; x < L3; ++x) {//spatial loops
     for (int y = 0; y < L2; ++y) {
-      for (int x = 0; x < L1; ++x) {
+      for (int z = 0; z < L1; ++z) {
         for (int mu = 1; mu < 4; ++mu) {//direction loop
           std::complex< double > array[9];
           int ind_r, ind_i;
           for (int a = 0; a < 3; ++a) {//colour loops
             for (int b = 0; b < 3; ++b) {
               //timeslice index of real part
-              ind_r = z*V_TS/L3+y*V_TS/(L3*L2)+x*V_TS/(V3)+
+              ind_r = x*V_TS/L3+y*V_TS/(L3*L2)+z*V_TS/(V3)+
                 mu*V_TS/(V3*NDIR)+a*V_TS/(V3*NDIR*NCOL)
                 +b*V_TS/(V3*NDIR*NCOL*NCOL)+0;
               //timeslice index of imaginary part
-              //int ind_i = z*V_TS/L3+y*V_TS/(L3*L2)+x*V_TS/(V3)+
+              //int ind_i = x*V_TS/L3+y*V_TS/(L3*L2)+z*V_TS/(V3)+
               //  mu*V_TS/(V3*NDIR)+a*V_TS/(V3*NDIR*NCOL)
               //  +b*V_TS/(V3*NDIR*NCOL*NCOL)+1;
               ind_i = ind_r + 1;
@@ -71,7 +69,7 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
           }
           Eigen::Map<Eigen::Matrix3cd> dummy(array);
           //spatial index
-          int ind = z*L2*L1+y*L1+x;
+          int ind = x*L2*L1+y*L1+z;
           this -> eigen_timeslice[ind][mu-1] = dummy;
         }
       }
