@@ -41,7 +41,8 @@ void Tslice::map_timeslice_to_eigen( double* timeslice) {
   int V3 = pars -> get_int("V3");
 
   int V_TS = pars -> get_int("V_TS");
-
+  //TODO: Rename z to x and x to z, because now it is very confusing! Do that
+  //consistently throughout function
   //read in elements
   int el_input = 0;
   for (int z = 0; z < L3; ++z) {//spatial loops
