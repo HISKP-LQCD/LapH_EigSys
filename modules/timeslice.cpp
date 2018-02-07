@@ -29,7 +29,7 @@ void Tslice::init() {
   }
   //std::cout << eigen_timeslice[V3-1][2] << std::endl;
 }
-
+// Naming is consistent with reordering of GaugeField in io.cpp
 //mapping from gauge config to Eigen 3x3 complex matrix arrays
 void Tslice::map_timeslice_to_eigen( double* timeslice) {
   int L1 = pars -> get_int("LZ");
