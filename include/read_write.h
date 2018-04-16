@@ -22,6 +22,9 @@
 void read_evectors_bin_ts(const char* prefix, const int config_i, const int t,
     const int nb_ev, Eigen::MatrixXcd& V);
 
+//Read in Eigenvectors from one Timeslice in binary format to V
+void read_evectors_bin_ts(const char* path, const char* prefix, const int config_i, const int t,
+    const int nb_ev, Eigen::MatrixXcd& V);
 //Read in eigenvalues from ascii file to std::array
 void read_eigenvalues_ascii( const char* prefix,const int config_i, const int t,
     const int nb_ev, std::vector<double>& ev);

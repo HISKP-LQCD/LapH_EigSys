@@ -42,7 +42,8 @@ void read_evectors_bin_ts(const char* prefix, const int config_i, const int t,
   int V3 = pars -> get_int("V3");
   //bool thorough = pars -> get_int("strict");
   const int dim_row = 3 * V3;
-  std::string path = pars -> get_path("input");
+  //TODO: Change path getting to something keyword independent
+  std::string path = pars -> get_path("in_path");
   //buffer for read in
   std::complex<double>* eigen_vec = new std::complex<double>[dim_row];
   //setting up file
@@ -65,6 +66,34 @@ void read_evectors_bin_ts(const char* prefix, const int config_i, const int t,
   infile.close();
 }
 
+//Reads in Eigenvectors from one Timeslice in binary format to V
+void read_evectors_bin_ts(const char * path, const char* prefix, const int config_i, const int t,
+    const int nb_ev, Eigen::MatrixXcd& V) {
+  int V3 = pars -> get_int("V3");
+  //bool thorough = pars -> get_int("strict");
+  const int dim_row = 3 * V3;
+  //TODO: Change path getting to something keyword independent
+  //buffer for read in
+  std::complex<double>* eigen_vec = new std::complex<double>[dim_row];
+  //setting up file
+  char filename[200];
+  sprintf(filename, "%s/%s.%04d.%03d", path, prefix, config_i, t);
+  std::cout << "Reading file: " << filename << std::endl;
+  std::ifstream infile(filename, std::ifstream::binary);
+  for (int nev = 0; nev < nb_ev; ++nev) {
+    infile.read( reinterpret_cast<char*> (eigen_vec), 2*dim_row*sizeof(double));
+    V.col(nev) = Eigen::Map<Eigen::VectorXcd, 0 >(eigen_vec, dim_row);
+    eof_check(t,nev,nb_ev,infile.eof());
+  }
+  if(check_trace(V, nb_ev) != true){
+    std::cout << "Timeslice: " << t << ": Eigenvectors damaged, exiting" << std::endl;
+    exit(0);
+  }
+
+  //clean up
+  delete[] eigen_vec;
+  infile.close();
+}
 //Reads in eigenvalues from ascii file to std::vector
 //Beware of arguments ordering in sprintf
 void read_eigenvalues_ascii(const char* prefix, const int config_i, const int t,

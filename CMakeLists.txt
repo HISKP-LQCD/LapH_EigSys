@@ -69,6 +69,16 @@ add_executable(sourceshape
     modules/timeslice.cpp
     )
 
+add_executable(set_phase
+    src/set_phase.cpp
+    modules/eigensystem.cpp
+    modules/navigation.cpp
+    modules/read_write.cpp
+    modules/sourceshape_funcs.cpp
+    modules/par_io.cpp
+    modules/timeslice.cpp
+    )
+
 target_link_libraries(ev_ts
     ${LIME_LIBRARIES}
     ${PETSC_LIBRARIES}

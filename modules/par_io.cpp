@@ -245,6 +245,9 @@ std::string IO::get_path(std::string spec) {
   if (spec == "input") {
     return input_path;
   }
+  if (spec == "in_path") {
+    return input_path;
+  }
   if (spec == "ev1") {
     return ev_path1;
   }
