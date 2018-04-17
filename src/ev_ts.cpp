@@ -23,6 +23,7 @@
 #include "io.h"
 #include "navigation.h"
 #include "par_io.h"
+#include "ranlxs.h"
 #include "shell_matop.h"
 #include "timeslice.h"
 #include "recover_spec.h"
@@ -175,7 +176,8 @@ int main(int argc, char **argv) {
   //loop over timeslices of a configuration
   for(int ts = 0; ts < todo; ++ts) {
     ierr = PetscTime(&v1); CHKERRQ(ierr);
-    PetscPrintf(PETSC_COMM_SELF, "%d: Initializing time slice %d...\n", rank, ts+tstart);
+    PetscPrintf(PETSC_COMM_SELF, "%d: Initializing time slice %d...\n", rank,
+                ts+tstart);
     //--------------------------------------------------------------------------//
     //                              Data input                                  //
     //--------------------------------------------------------------------------//
@@ -194,7 +196,8 @@ int main(int argc, char **argv) {
     slice -> smearing_hyp(ALPHA_1, ALPHA_2, ITER);
     //__Define Action of Laplacian in Color and spatial space on vector
     //std::cout << rank << ": Try to create Shell Matrix..." << std::endl;
-    ierr = MatCreateShell(PETSC_COMM_SELF,PETSC_DECIDE,PETSC_DECIDE,MAT_ENTRIES,MAT_ENTRIES,&V3,&A);
+    ierr = MatCreateShell(PETSC_COMM_SELF,PETSC_DECIDE,PETSC_DECIDE,
+                          MAT_ENTRIES,MAT_ENTRIES,&V3,&A);
       CHKERRQ(ierr);
     //std::cout << rank << ": done" << std::endl;
     //std::cout << rank << ": Try to set operations..." << std::endl;
@@ -236,7 +239,28 @@ int main(int argc, char **argv) {
       CHKERRQ(ierr);
     ierr = EPSSetProblemType(eps, EPS_HEP);
       CHKERRQ(ierr);
-
+    // Supply an initial guess
+    //rlxs_init(2,1227);
+    //float rnd_re[MAT_ENTRIES];
+    //float rnd_im[MAT_ENTRIES];
+    //ranlxs(rnd_re,MAT_ENTRIES);
+    //ranlxs(rnd_im,MAT_ENTRIES);
+    //std::cout << "Set up random numbers" << std::endl;
+    //Vec init;
+    //VecCreate(PETSC_COMM_WORLD,&init);
+    //VecSetType(init,VECSEQ);
+    //VecSetSizes(init, PETSC_DECIDE,MAT_ENTRIES);
+    //std::cout << "Vector Initialized" << std::endl;
+    //for (int i = 0; i < MAT_ENTRIES; ++i){
+    //  const std::complex<double> tmp(rnd_re[i],rnd_im[i]);
+    //  const PetscScalar _tmp = tmp;
+    //  VecSetValues(init,1,&i,&_tmp,INSERT_VALUES);
+    //}
+    //std::cout << "Vector Set" << std::endl;
+    //VecAssemblyBegin(init);
+    //VecAssemblyEnd(init);
+    //ierr = EPSSetInitialSpace(eps, 1, &init);
+    //  CHKERRQ(ierr);
     //Set solver parameters at runtime
     //default nev: 200
     ierr = EPSSetDimensions(eps, nev, PETSC_DECIDE, PETSC_DECIDE);
@@ -303,20 +327,22 @@ int main(int argc, char **argv) {
     }
     if (phase_reset){
       std::cout << "Resetting old phases" << std::endl;
-      read_eigenvalues_bin(pars -> get_path("phase_path").c_str(),"phases",config,
+      read_eigenvalues_bin(pars -> get_path("phase_path"),"phases",config,
                            tstart+ts, nev, phase);
-      for (auto it:phase) std::cout<<it<<std::endl;
       reset_phase(eigensystem, eigensystem_fix, phase);
     }
     std::cout << "Fixing phases" << std::endl;
     fix_phase(eigensystem, eigensystem_fix, phase);
-    write_eig_sys_bin("eigenvectors", config, tstart+ts, nev, eigensystem_fix); 
+    write_eig_sys_bin(pars -> get_path("res"),"eigenvectors", config,
+                      tstart+ts, nev, eigensystem_fix); 
     //recover spectrum of eigenvalues from acceleration
     std::vector<double> evals_save;
     recover_spectrum(nconv, evals_accel, evals_save);
     std::cout << rank << ": " << evals_accel.at(0) << " " << evals_save.at(0) <<std::endl;
-    write_eigenvalues_bin("eigenvalues", config, tstart+ts, nev, evals_save);
-    write_eigenvalues_bin("phases", config, tstart+ts, nev, phase);
+    write_eigenvalues_bin(pars -> get_path("res"),"eigenvalues", config,
+                          tstart+ts, nev, evals_save);
+    write_eigenvalues_bin(pars -> get_path("res"),"phases", config,
+                          tstart+ts, nev, phase);
   
     //check trace and sum of eigensystem
     vdv = eigensystem.adjoint() * ( eigensystem );

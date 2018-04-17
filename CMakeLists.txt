@@ -58,6 +58,7 @@ add_executable(ev_ts
     modules/eigensystem.cpp
     modules/io.cpp
     modules/io_utils.cpp
+    modules/ranlxs.cpp
     modules/navigation.cpp
     modules/par_io.cpp
     modules/read_write.cpp
