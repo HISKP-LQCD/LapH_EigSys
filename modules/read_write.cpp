@@ -132,12 +132,12 @@ void read_gauge_matrices (const char* prefix, Eigen::Matrix3cd* G) {
 }
 
 //Reads in eigenvalues from binary to std::vector
-void read_eigenvalues_bin( const char* prefix, const int config_i, const int t,
+void read_eigenvalues_bin(const char* path, const char* prefix, const int config_i, const int t,
     const int nb_ev, std::vector<double>& ev) {
-
   //Build filename
   char filename[200];
-  sprintf(filename, "%s.%04d.%03d", prefix, config_i, t);
+  sprintf(filename, "%s/%s.%04d.%03d", path, prefix, config_i, t);
+  std::cout<< filename <<std::endl;
   std::ifstream infile(filename, std::ifstream::binary);
   if (infile) {
     ev.resize(nb_ev);

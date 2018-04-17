@@ -30,7 +30,7 @@ void read_eigenvalues_ascii( const char* prefix,const int config_i, const int t,
     const int nb_ev, std::vector<double>& ev);
 
 //Read in eigenvalues from binary to std::vector
-void read_eigenvalues_bin( const char* prefix, const int config_i, const int t,
+void read_eigenvalues_bin(const char* path, const char* prefix, const int config_i, const int t,
     const int nb_ev, std::vector<double>& ev);
 
 //Reads in Array of gauge-trafo matrices from binary file to Array of

@@ -13,6 +13,7 @@
  */
 #include <cstdlib>
 #include <string>
+#include <boost/program_options.hpp>
 #include <Eigen/Core>
 #include <mpi.h>
 #include <slepceps.h>
@@ -28,6 +29,7 @@
 #include "read_write.h"
 
 int main(int argc, char **argv) {
+  namespace po = boost::program_options;
   //--------------------------------------------------------------------------//
   //                             Local variables                              //
   //--------------------------------------------------------------------------//
@@ -39,9 +41,33 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   //get number of configuration from last argument to main
-  int config = atoi( argv[ (argc-1) ] );
-  --argc;
-
+  //int config = atoi( argv[ (argc-1) ] );
+  //--argc;
+  po::options_description desc("Allowed options");
+  desc.add_options()
+    ("help","print that message")
+    ("conf",po::value<int>(0),"trajectory number for gauge config")
+    ("phase_reset",po::value<bool>(),"Should the phase be set to an old one?")
+    ;
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc,argv,desc),vm);
+  po::notify(vm);
+  if (vm.count("help")){
+    std::cout << desc <<std::endl;
+    return 1;
+  }
+  int config;
+  if (vm.count("conf")){
+    config = vm["conf"].as<int>();
+    std::cout << "Working on configuration" << config << std::endl;
+  }
+  else{
+    std::cout<< "No configuration number specified!" << std::endl;
+  }
+  bool phase_reset = false;
+  if (vm.count("phase_reset")){
+    phase_reset = true;
+  }
   SlepcInitialize(&argc, &argv, (char*)0, NULL);
   // handle input file
   IO* pars = IO::getInstance();
@@ -126,8 +152,8 @@ int main(int argc, char **argv) {
   PetscInt nconv;
   PetscScalar eigr;
   PetscScalar eigi;
-  std::vector<double> evals_accel;
-  std::vector<double> phase;
+  std::vector<double> evals_accel(nev);
+  std::vector<double> phase(nev);
   Vec xr;
   Vec xi;
   //Matrix to hold the entire eigensystem
@@ -275,6 +301,14 @@ int main(int argc, char **argv) {
       ierr = VecRestoreArray(xr, &ptr_evec);
       CHKERRQ(ierr);
     }
+    if (phase_reset){
+      std::cout << "Resetting old phases" << std::endl;
+      read_eigenvalues_bin(pars -> get_path("phase_path").c_str(),"phases",config,
+                           tstart+ts, nev, phase);
+      for (auto it:phase) std::cout<<it<<std::endl;
+      reset_phase(eigensystem, eigensystem_fix, phase);
+    }
+    std::cout << "Fixing phases" << std::endl;
     fix_phase(eigensystem, eigensystem_fix, phase);
     write_eig_sys_bin("eigenvectors", config, tstart+ts, nev, eigensystem_fix); 
     //recover spectrum of eigenvalues from acceleration

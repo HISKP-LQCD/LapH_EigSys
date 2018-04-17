@@ -8,6 +8,12 @@ project(LapH-Eigsys CXX C)
 
 include_directories("include")
 
+# Boost
+if(NOT DEFINED Boost_INCLUDE_DIRS OR NOT DEFINED Boost_LIBRARIES)
+  find_package(Boost REQUIRED COMPONENTS filesystem system program_options)
+endif()
+include_directories(${Boost_INCLUDE_DIRS})
+
 if(NOT DEFINED EIGEN3_INCLUDE_DIRS)
     find_package(Eigen3 REQUIRED)
 endif()
@@ -80,6 +86,7 @@ add_executable(set_phase
     )
 
 target_link_libraries(ev_ts
+    ${Boost_LIBRARIES}
     ${LIME_LIBRARIES}
     ${PETSC_LIBRARIES}
     ${SLEPC_LIBRARIES}

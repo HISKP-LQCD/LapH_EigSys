@@ -39,6 +39,9 @@ void IO::set_values(const char* infile) {
         if (keyword == "in_path") {
           names["in_path"] = value;
         }
+        if (keyword == "phase_path") {
+          names["phase_path"] = value;
+        }
         if (keyword == "ev_path_1") {
           names["ev_path_1"] = value;
         }
@@ -99,6 +102,7 @@ void IO::set_values(const char* infile) {
   config_path = names["config_path"];
   result_path = names["result_path"];
   input_path = names["in_path"];
+  phase_path = names["phase_path"];
   ev_path1 = names["ev_path_1"];
   ev_path2 = names["ev_path_2"];
 
@@ -247,6 +251,9 @@ std::string IO::get_path(std::string spec) {
   }
   if (spec == "in_path") {
     return input_path;
+  }
+  if (spec == "phase_path") {
+    return phase_path;
   }
   if (spec == "ev1") {
     return ev_path1;

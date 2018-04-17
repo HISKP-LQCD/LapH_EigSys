@@ -23,8 +23,8 @@ void fix_phase(Eigen::MatrixXcd& V, Eigen::MatrixXcd& V_fix, std::vector<double>
     fac = std::exp(i_neg*tmp_phase);
     //Fix phase of eigenvector with negative polar angle of first entry
     V_fix.col(n) = fac * V.col(n); 
-    std::cout << n << "\t" << fac  << "\t" << phase.at(n) 
-              << "\t" << std::arg(V_fix(0,n)) << std::endl;
+    //std::cout << n << "\t" << fac  << "\t" << phase.at(n) 
+    //          << "\t" << std::arg(V_fix(0,n)) << std::endl;
 
   }
 }
@@ -51,8 +51,8 @@ void reset_phase(Eigen::MatrixXcd& V, Eigen::MatrixXcd& V_reset,
     fac = std::exp(i_neg*(tmp_phase-phase_want.at(n)));
     //Fix phase of eigenvector with negative polar angle of first entry
     V_reset.col(n) = fac * V.col(n);
-    std::cout << n << "\t" << fac  << "\t" << phase_want.at(n) 
-              << "\t" << std::arg(V_reset(0,n)) << std::endl;
+    //std::cout << n << "\t" << fac  << "\t" << phase_want.at(n) 
+    //          << "\t" << std::arg(V_reset(0,n)) << std::endl;
   }
 }
 
