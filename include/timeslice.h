@@ -5,20 +5,31 @@
 #include <array>
 #include <complex>
 #include <Eigen/Eigen>
-#include <unsupported/Eigen/MatrixFunctions> 
+#include <unsupported/Eigen/MatrixFunctions>
+#include <boost/program_options.hpp>
+
+#include "typedefs.h"
 #include "navigation.h"
 #include "par_io.h"
+#include "io.h"
+
+namespace po = boost::program_options;
 class Tslice {
   private:
     Tslice (){};
     ~Tslice ();
     //Eigen Array
     Eigen::Matrix3cd** eigen_timeslice;
+    //structure for meta information (taken from programoptions)
+    metadata meta;
+    //set data from a boost option description object
+    void set_meta();
   public:
-
+    
     static Tslice* getInstance();
     //initialize timeslice with identity matrices
-    void init(); 
+    void init();
+    void init(const std::string& filename, const mpi_timeranges& mpi);
     //Get SU(3)-Matrices from timeslice and sort them into Eigen Array
     void map_timeslice_to_eigen( double* timeslice);
     void transform_ts(Eigen::Matrix3cd* Omega);

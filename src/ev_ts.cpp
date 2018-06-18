@@ -167,7 +167,6 @@ int main(int argc, char **argv) {
 
   //Initialize memory for configuration
   double* configuration = new double[todo*V_TS];
-  //double* configuration = new double[V_4_LIME];
   ierr = read_lime_gauge_field_doubleprec_timeslices(configuration, conf_name,
       L0, L1, L1, L1, tstart, tend);
   ierr = PetscTime(&v2); CHKERRQ(ierr);

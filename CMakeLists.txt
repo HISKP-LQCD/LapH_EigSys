@@ -86,6 +86,16 @@ add_executable(set_phase
     modules/timeslice.cpp
     )
 
+add_executable(lapheig
+    src/lapheig.cpp
+    modules/io.cpp
+    modules/io_utils.cpp
+    modules/navigation.cpp
+    modules/sourceshape_funcs.cpp
+    modules/par_io.cpp
+    modules/timeslice.cpp
+    )
+
 target_link_libraries(ev_ts
     ${Boost_LIBRARIES}
     ${LIME_LIBRARIES}
@@ -94,4 +104,9 @@ target_link_libraries(ev_ts
     m 
     )
 
+target_link_libraries(lapheig
+    ${Boost_LIBRARIES}
+    ${LIME_LIBRARIES}
+    m 
+    )
   install(TARGETS ev_ts DESTINATION bin)

@@ -29,6 +29,29 @@ void Tslice::init() {
   }
   //std::cout << eigen_timeslice[V3-1][2] << std::endl;
 }
+void Tslice::init(const std::string& filename, const mpi_timeranges& mpi) {
+  // set meta information
+  void set_meta();
+  //Initialize memory for configuration
+  double* configuration = new double[mpi.todos*meta.V_TS];
+  std::cout << meta.V_TS << std::endl;
+  int ierr = 0;
+  ierr = read_lime_gauge_field_doubleprec_timeslices(configuration, filename.c_str(),
+      meta.L0, meta.L1, meta.L1, meta.L1, mpi.tstart, mpi.tend);
+  map_timeslice_to_eigen(configuration);
+  delete[] configuration;
+
+}
+void Tslice::set_meta(){
+  meta.L0 = pars -> get_int("LT");
+  meta.L1 = pars -> get_int("LZ");
+  meta.L2 = pars -> get_int("LY");
+  meta.L3 = pars -> get_int("LX");
+  meta.NDIR = pars -> get_int("NDIR");
+  meta.NCOL = pars -> get_int("NCOL");
+  meta.V3 = pars -> get_int("V3");
+  meta.V_TS = pars -> get_int("V_TS");
+}
 // Naming is consistent with reordering of GaugeField in io.cpp
 //mapping from gauge config to Eigen 3x3 complex matrix arrays
 void Tslice::map_timeslice_to_eigen( double* timeslice) {
